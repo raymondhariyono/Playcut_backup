@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">Modul1</string>
-    <string name="roll">ROll</string>
-    <string name="dice_roller">dice_roller</string>
-    <string name="title_activity_main_xml">MainActivityXML</string>
-</resources>
