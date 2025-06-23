@@ -1,4 +1,4 @@
-package com.raymondHariyono.playcut.components
+package com.raymondHariyono.playcut.data
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

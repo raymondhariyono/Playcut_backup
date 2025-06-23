@@ -29,7 +29,6 @@
     import com.airbnb.lottie.compose.LottieCompositionSpec
     import com.airbnb.lottie.compose.LottieConstants
     import com.airbnb.lottie.compose.rememberLottieComposition
-    import com.raymondHariyono.playcut.ui.theme.BluePrimary
     import com.raymondHariyono.playcut.ui.theme.PlayCUtTheme
 
 

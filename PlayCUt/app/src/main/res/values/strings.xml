@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">PlayCUt</string>
+    <string name="book_with">Pesan dengan %1$s</string>
+    <string name="select_service">Pilih Layanan</string>
+    <string name="select_additional_service">Pilih Layanan Tambahan</string>
+    <string name="select_available_time">Pilih Waktu Tersedia</string>
+    <string name="confirm_booking">Konfirmasi Pemesanan</string>
+    <string name="please_select_all">Harap pilih layanan, layanan tambahan, dan waktu</string>
+    <string name="booking_confirmed">Pemesanan dikonfirmasi dengan %1$s pada %2$s</string>
+    <string name="service">Layanan</string>
+    <string name="services">Layanan</string>
+    <string name="barber_di_cabang_ini">Barber di Cabang Ini</string>
+    <string name="paket_harga">Paket / Harga</string>
+    <string name="reguler">REGULER</string>
+    <string name="other_service">Layanan Lain</string>
+    <string name="branch_image_desc">Gambar Cabang</string>
+    <string name="login_title">Masuk</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Masuk</string>
+    <string name="no_account">Belum punya akun?</string>
+    <string name="register">Daftar</string>
+    <string name="profile_name">Raymond Hariyono</string>
+    <string name="profile_email">raymond@example.com</string>
+    <string name="settings">Pengaturan</string>
+    <string name="logout">Log Out</string>
+    <string name="register_button">Daftar</string>
+    <string name="have_account">Sudah punya akun?</string>
+    <string name="email_hint">Email</string>
+    <string name="name_hint">Nama</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="search_branch">Cari Cabang</string>
+    <string name="branch_location">Lokasi Cabang</string>
+    <string name="book_now">Pesan Sekarang</string>
+    <string name="no_reservation">Belum ada reservasi</string>
+    <string name="barber_name">Nama Barber</string>
+    <string name="available_times">Waktu Tersedia</string>
+
+</resources>

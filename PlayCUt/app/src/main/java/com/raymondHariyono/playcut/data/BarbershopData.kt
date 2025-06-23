@@ -1,8 +1,8 @@
-package com.raymondHariyono.playcut.components
+package com.raymondHariyono.playcut.data
 
 import com.raymondHariyono.playcut.R
 
-data class Branch(
+class Branch(
     val id: Int,
     val name: String,
     val addressShort: String,
@@ -12,7 +12,7 @@ data class Branch(
     val barbers: List<Barber>
 )
 
-data class Barber(
+class Barber(
     val id: Int,
     val name: String,
     val contact: String,

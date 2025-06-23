@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.raymondHariyono.playcut.data.OnBoarding
 import com.raymondHariyono.playcut.data.barberShopData
 import com.raymondHariyono.playcut.screens.*
 
@@ -15,23 +16,39 @@ fun AppNavigator() {
 
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = "onBoarding"
     ) {
-        composable("login") { LoginPage(navController)}
+        composable("onBoarding")
+        {
+            OnBoardingPage(navController)
+        }
 
-        composable("register") { RegisterPage(navController) }
+        composable("login")
+        {
+            LoginPage(navController)
+        }
 
-        composable("home") { HomePage(navController) }
+        composable("register")
+        {
+            RegisterPage(navController)
+        }
 
-        composable("profile") {ProfilePage(navController) }
+        composable("home")
+        {
+            HomePage(navController)
+        }
 
-        // SETTING PAGE
-        composable("setting") { SettingPage(navController) }
+        composable("profile")
+        {
+            ProfilePage(navController)
+        }
 
-        // BRANCH PAGE
-        composable("branch") { SearchBranchPage(navController) }
+        composable("branch")
+        {
+            SearchBranchPage(navController)
+        }
 
-        // DETAIL CABANG
+
         composable(
             route = "DetailBranch/{branchId}",
             arguments = listOf(navArgument("branchId") { type = NavType.IntType })
