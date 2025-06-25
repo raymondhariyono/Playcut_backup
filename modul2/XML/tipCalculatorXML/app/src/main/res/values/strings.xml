@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">MODUL 2 XML</string>
-    <string name="tip_result">Tip Amount: %1$</string>
-    <string name="bill_amount">Bill Amount</string>
-    <string name="tip_percentage">Tip Percentage</string>
-    <string name="tip_amount">Tip Amount:</string>
-</resources>
