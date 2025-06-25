@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "198048532738",
+    "project_id": "playcut-26355",
+    "storage_bucket": "playcut-26355.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:198048532738:android:ba4b1012785692b184da1b",
+        "android_client_info": {
+          "package_name": "com.raymondHariyono.playcut"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWM1NutzARQ0mUnwX3jx09ba9hWJCydSc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
