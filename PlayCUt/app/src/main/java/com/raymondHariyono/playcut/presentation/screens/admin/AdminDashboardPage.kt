@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -25,13 +27,24 @@ fun AdminDashboardPage(
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    if (uiState.isLoggedOut) {
+        navController.navigate("login") {
+            // Hapus semua halaman dari back stack
+            popUpTo(navController.graph.id) { inclusive = true }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Dashboard - Cabang ${uiState.adminProfile?.branchName ?: "..."}") },
                 actions = {
-                    // TODO: Tambahkan tombol logout untuk admin
+                    IconButton(onClick = { viewModel.onLogoutClick() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
+                            contentDescription = "Logout"
+                        )
+                    }
                 }
             )
         },

@@ -1,6 +1,7 @@
 package com.raymondHariyono.playcut.data.repository
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -10,7 +11,7 @@ import com.raymondHariyono.playcut.domain.model.*
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
 import com.raymondHariyono.playcut.domain.usecase.branch.BarberDetails
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -105,8 +106,11 @@ class BarbershopRepositoryImpl(
 
     //FUNGSI UNTUK DATA LOKAL
     override fun getReservations(): Flow<List<Reservation>> {
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         return reservationDao.getAllReservations().map { entityList ->
-            entityList.map { it.toDomainModel() } // Menggunakan helper
+            entityList
+                .filter { it.userId == currentUserId }
+                .map { it.toDomainModel() } // Menggunakan helper
         }
     }
 
@@ -117,20 +121,18 @@ class BarbershopRepositoryImpl(
     }
 
     override suspend fun saveReservation(reservation: Reservation) {
-        // try-catch membungkus SEMUA operasi
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("User belum login.")
+        val reservationWithUser = reservation.copy(userId = currentUserId)
         try {
             // Langkah 1: Simpan ke Firestore terlebih dahulu sebagai sumber kebenaran utama
-            firestore.collection("reservations").document(reservation.id).set(reservation).await()
-            Log.d(TAG, "Reservasi berhasil disimpan ke Firestore dengan ID: ${reservation.id}")
+            firestore.collection("reservations").document(reservation.id).set(reservationWithUser).await()
 
-            // Langkah 2: HANYA JIKA Firestore berhasil, simpan juga ke database lokal Room
-            // Hapus pemanggilan DAO yang ada di luar blok try
-            reservationDao.insertReservation(reservation.toEntity())
+            Log.d(TAG, "Reservasi berhasil disimpan ke Firestore dengan ID: ${reservation.id}")
+            reservationDao.insertReservation(reservationWithUser.toEntity())
             Log.d(TAG, "Reservasi juga berhasil disimpan ke database lokal Room.")
 
         } catch (e: Exception) {
             Log.e(TAG, "Gagal menyimpan reservasi: ${e.message}", e)
-            // Lemparkan kembali exception agar UseCase bisa menangkapnya dan memberi tahu UI
             throw e
         }
     }
@@ -204,7 +206,8 @@ private fun ReservationEntity.toDomainModel(): Reservation {
         branchName = this.branchName,
         barberName = this.barberName,
         customerName = this.customerName,
-        status = this.status
+        status = this.status,
+        userId = this.userId
     )
 }
 
@@ -218,6 +221,7 @@ private fun Reservation.toEntity(): ReservationEntity {
         branchName = this.branchName,
         barberName = this.barberName,
         customerName = this.customerName,
-        status = this.status
+        status = this.status,
+        userId = this.userId
     )
 }

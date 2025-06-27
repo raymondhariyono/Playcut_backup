@@ -7,5 +7,6 @@ data class AdminDashboardUiState(
     val isLoading: Boolean = true,
     val adminProfile: UserProfile? = null,
     val reservationsForBranch: List<Reservation> = emptyList(),
+    val isLoggedOut: Boolean = false,
     val error: String? = null
 )

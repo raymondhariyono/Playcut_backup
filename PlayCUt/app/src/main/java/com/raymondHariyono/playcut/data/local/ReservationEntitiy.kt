@@ -13,5 +13,6 @@ data class ReservationEntity(
     val branchName: String,
     val barberName: String,
     val customerName: String,
-    val status: String
+    val status: String,
+    val userId: String
 )

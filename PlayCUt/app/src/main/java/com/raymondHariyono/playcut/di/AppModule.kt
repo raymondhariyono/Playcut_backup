@@ -171,4 +171,6 @@ object AppModule {
     fun provideAddBarberUseCase(repo: BarbershopRepository): AddBarberUseCase {
         return AddBarberUseCase(repo)
     }
+
+
 }
