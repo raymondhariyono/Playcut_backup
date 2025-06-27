@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/screens/profile/ProfilePage.kt
 package com.raymondHariyono.playcut.presentation.screens.profile
 
 import androidx.compose.foundation.BorderStroke
@@ -47,16 +46,15 @@ fun ProfilePage(
                 .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            } else if (uiState.error != null) {
-                Text(text = "Error: ${uiState.error}")
-            } else if (uiState.userProfile != null) {
-                val profile = uiState.userProfile!!
-                ProfileContent(
-                    profile = profile,
-                    onLogoutClick = viewModel::onLogoutClick
-                )
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.error != null -> Text(text = "Error: ${uiState.error}")
+                uiState.userProfile != null -> {
+                    ProfileContent(
+                        profile = uiState.userProfile!!,
+                        onLogoutClick = viewModel::onLogoutClick
+                    )
+                }
             }
         }
     }

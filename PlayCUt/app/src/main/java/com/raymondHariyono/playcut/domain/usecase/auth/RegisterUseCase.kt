@@ -1,8 +1,7 @@
-package com.raymondHariyono.playcut.domain.usecase
+package com.raymondHariyono.playcut.domain.usecase.auth
 
 import android.util.Patterns
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
-import kotlinx.coroutines.delay
 
 data class RegisterCredentials(
     val name: String,

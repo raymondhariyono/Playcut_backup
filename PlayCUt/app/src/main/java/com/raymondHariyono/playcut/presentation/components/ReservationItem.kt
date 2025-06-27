@@ -1,5 +1,6 @@
 package com.raymondHariyono.playcut.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,7 +15,11 @@ import androidx.compose.ui.unit.dp
 import com.raymondHariyono.playcut.domain.model.Reservation
 
 @Composable
-fun ReservationItem(reservation: Reservation) {
+fun ReservationItem(
+    reservation: Reservation,
+    onCancelClick: (String) -> Unit,
+    onEditClick: (String) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,7 +46,7 @@ fun ReservationItem(reservation: Reservation) {
                 }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 12.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
             InfoRow(label = "Customer", value = reservation.customerName)
             InfoRow(label = "Service", value = reservation.service)
@@ -56,10 +61,15 @@ fun ReservationItem(reservation: Reservation) {
             Spacer(Modifier.height(16.dp))
             // Tombol Edit dan Cancel
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OutlinedButton(onClick = { /* TODO: Cancel logic */ }, modifier = Modifier.padding(end = 8.dp)) {
+                OutlinedButton(
+                    onClick = { onCancelClick(reservation.id) },
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                ) {
                     Text("Cancel")
                 }
-                Button(onClick = { /* TODO: Edit logic */ }) {
+                Button(onClick = {onEditClick(reservation.id) }) {
                     Text("Edit")
                 }
             }

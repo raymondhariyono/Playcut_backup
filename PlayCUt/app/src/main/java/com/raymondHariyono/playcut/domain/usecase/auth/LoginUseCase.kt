@@ -1,6 +1,7 @@
-package com.raymondHariyono.playcut.domain.usecase
+package com.raymondHariyono.playcut.domain.usecase.auth
 
 import android.util.Patterns
+import com.raymondHariyono.playcut.domain.model.UserProfile
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import kotlinx.coroutines.delay
 
@@ -13,8 +14,6 @@ class LoginUseCase(
     private val authRepository: AuthRepository
 ) {
     suspend operator fun invoke(credentials: LoginCredentials): Result<Unit> {
-        delay(1500)
-
         if (!Patterns.EMAIL_ADDRESS.matcher(credentials.email).matches()) {
             return Result.failure(Exception("Format email tidak valid."))
         }

@@ -39,10 +39,9 @@ fun LoginPage(
     // 2. Side-effect untuk navigasi ketika login sukses
     LaunchedEffect(key1 = uiState.loginSuccess) {
         if (uiState.loginSuccess) {
-            navController.navigate("home") {
-                // Hapus semua halaman sebelumnya dari back stack
+            val destination = if (uiState.userRole == "admin") "adminDashboard" else "home"
+            navController.navigate(destination) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                launchSingleTop = true
             }
         }
     }

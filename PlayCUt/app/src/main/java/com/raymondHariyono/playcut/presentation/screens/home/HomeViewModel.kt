@@ -2,7 +2,7 @@ package com.raymondHariyono.playcut.presentation.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.raymondHariyono.playcut.domain.usecase.GetHomePageDataUseCase
+import com.raymondHariyono.playcut.domain.usecase.home.GetHomePageDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

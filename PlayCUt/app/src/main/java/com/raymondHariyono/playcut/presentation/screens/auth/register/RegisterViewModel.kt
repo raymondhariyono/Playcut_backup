@@ -1,23 +1,26 @@
 // File: app/src/main/java/com/raymondHariyono/playcut/presentation/screens/user/RegisterViewModel.kt
-package com.raymondHariyono.playcut.presentation.screens.user
+package com.raymondHariyono.playcut.presentation.screens.auth.register
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.raymondHariyono.playcut.data.repository.AuthRepositoryImpl
-import com.raymondHariyono.playcut.domain.usecase.RegisterCredentials
-import com.raymondHariyono.playcut.domain.usecase.RegisterUseCase
-import com.raymondHariyono.playcut.presentation.screens.auth.register.RegisterUiState
+import com.raymondHariyono.playcut.domain.usecase.auth.RegisterCredentials
+import com.raymondHariyono.playcut.domain.usecase.auth.RegisterUseCase
 import com.raymondHariyono.playcut.utils.ConnectionUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val registerUseCase: RegisterUseCase,
+    application: Application
+) : AndroidViewModel(application) {
 
-    private val registerUseCase = RegisterUseCase(AuthRepositoryImpl())
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState = _uiState.asStateFlow()
 

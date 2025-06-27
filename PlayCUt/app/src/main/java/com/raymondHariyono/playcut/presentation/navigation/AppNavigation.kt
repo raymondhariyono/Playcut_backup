@@ -1,20 +1,25 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/navigation/AppNavigation.kt
 package com.raymondHariyono.playcut.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.raymondHariyono.playcut.presentation.screens.admin.AddBarberPage
+import com.raymondHariyono.playcut.presentation.screens.admin.AdminDashboardPage
+import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginPage
 import com.raymondHariyono.playcut.presentation.screens.booking.BookingPage
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.DetailBranchPage
 import com.raymondHariyono.playcut.presentation.screens.branch.search.SearchBranchPage
 import com.raymondHariyono.playcut.presentation.screens.home.HomePage
 import com.raymondHariyono.playcut.presentation.screens.onboarding.OnBoardingPage
-import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginPage
-import com.raymondHariyono.playcut.presentation.screens.user.RegisterPage
+import com.raymondHariyono.playcut.presentation.screens.profile.ProfilePage
 import com.raymondHariyono.playcut.presentation.screens.reservation.YourReservationPage
+import com.raymondHariyono.playcut.presentation.screens.splash.SPLASH_ROUTE
+import com.raymondHariyono.playcut.presentation.screens.splash.SplashScreen
+import com.raymondHariyono.playcut.presentation.screens.user.RegisterPage
 
 @Composable
 fun AppNavigator() {
@@ -22,43 +27,60 @@ fun AppNavigator() {
 
     NavHost(
         navController = navController,
-        startDestination = "onBoarding" // Memulai dari halaman OnBoarding
+        startDestination = SPLASH_ROUTE // Halaman pertama selalu splash
     ) {
+        composable(SPLASH_ROUTE) {
+            SplashScreen(navController = navController)
+        }
         composable("onBoarding") {
             OnBoardingPage(navController = navController)
         }
         composable("login") {
-            LoginPage(navController = navController)
+            LoginPage(navController = navController, viewModel = hiltViewModel())
         }
         composable("register") {
-            RegisterPage(navController = navController)
+            RegisterPage(navController = navController, viewModel = hiltViewModel())
         }
         composable("home") {
-            HomePage(navController = navController)
+            HomePage(navController = navController, viewModel = hiltViewModel())
         }
-        // Ini adalah nama route untuk halaman daftar cabang
+        composable("profile") {
+            ProfilePage(navController = navController, viewModel = hiltViewModel())
+        }
         composable("branch") {
-            SearchBranchPage(navController = navController)
+            SearchBranchPage(navController = navController, viewModel = hiltViewModel())
         }
-        // Route untuk halaman detail, menerima argumen branchId
+        composable("yourReservation") {
+            YourReservationPage(navController = navController, viewModel = hiltViewModel())
+        }
+        composable("adminDashboard") {
+            AdminDashboardPage(navController = navController, viewModel = hiltViewModel())
+        }
+        composable("addBarber/{branchId}", arguments = listOf(navArgument("branchId") { type = NavType.IntType })) {
+            AddBarberPage(navController = navController, viewModel = hiltViewModel())
+        }
+
         composable(
             route = "DetailBranch/{branchId}",
             arguments = listOf(navArgument("branchId") { type = NavType.IntType })
         ) {
-            DetailBranchPage(navController = navController)
+            DetailBranchPage(navController = navController, viewModel = hiltViewModel())
         }
 
         composable(
-            route = "booking/{barberId}",
-            arguments = listOf(navArgument("barberId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val barberId = backStackEntry.arguments?.getInt("barberId") ?: -1
-            BookingPage(navController = navController, barberId = barberId)
-        }
-
-        // Route untuk halaman reservasi Anda
-        composable("yourReservation") {
-            YourReservationPage(navController = navController)
+            route = "booking?barberId={barberId}&reservationId={reservationId}",
+            arguments = listOf(
+                navArgument("barberId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
+                navArgument("reservationId") {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+        ) {
+            BookingPage(navController = navController, viewModel = hiltViewModel())
         }
     }
 }

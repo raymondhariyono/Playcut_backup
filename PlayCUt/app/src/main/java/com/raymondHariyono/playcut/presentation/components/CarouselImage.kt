@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/components/CarouselImage.kt
 package com.raymondHariyono.playcut.presentation.components
 
 import androidx.compose.foundation.Image

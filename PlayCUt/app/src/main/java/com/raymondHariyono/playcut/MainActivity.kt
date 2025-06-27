@@ -17,7 +17,9 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.raymondHariyono.playcut.data.seeder.AdminAccountSeeder
 import com.raymondHariyono.playcut.data.seeder.FirestoreSeeder
 import com.raymondHariyono.playcut.presentation.navigation.AppNavigator
 import com.raymondHariyono.playcut.ui.theme.PlayCUtTheme
@@ -30,7 +32,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        runSeeder()
+        runAllSeeders()
         enableEdgeToEdge()
 
         setContent {
@@ -41,41 +43,23 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun runSeeder() {
+    private fun runAllSeeders() {
+        // Gunakan lifecycleScope untuk menjalankan coroutine yang aman
         lifecycleScope.launch {
+            // Siapkan semua koneksi yang dibutuhkan
             val firestore = FirebaseFirestore.getInstance()
-            val seeder = FirestoreSeeder(firestore)
-            seeder.seedDataIfNeeded()
+            val firebaseAuth = FirebaseAuth.getInstance()
+
+            // Buat instance dari kedua seeder
+            val dataSeeder = FirestoreSeeder(firestore)
+            val adminSeeder = AdminAccountSeeder(firebaseAuth, firestore)
+
+            // Jalankan kedua seeder secara berurutan
+            dataSeeder.seedDataIfNeeded()
+            adminSeeder.seedAdminAccounts()
         }
     }
 }
-@Composable
-fun SplashScreen()  {
-    var isSplashFinished by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        delay(2000)
-        isSplashFinished = true
-    }
 
-    if (isSplashFinished) {
-        AppNavigator()
-    } else {
-        SplashContent()
-    }
-}
 
-@Composable
-fun SplashContent() {
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.barbershop_logo))
-    val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
-    Box(
-        modifier = Modifier
-            .background(color = MaterialTheme.colorScheme.primary)
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center,
-
-    ) {
-        LottieAnimation(composition = composition, progress = { progress })
-    }
-}

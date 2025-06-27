@@ -2,8 +2,7 @@ package com.raymondHariyono.playcut.presentation.screens.branch.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.raymondHariyono.playcut.data.repository.BarbershopRepositoryImpl
-import com.raymondHariyono.playcut.domain.usecase.GetBranchesUseCase
+import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject

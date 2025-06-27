@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/ray
 package com.raymondHariyono.playcut.presentation.components
 
 import androidx.compose.foundation.Image

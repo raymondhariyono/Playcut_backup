@@ -41,59 +41,55 @@ fun DetailBranchPage(
                 .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            } else if (uiState.error != null) {
-                Text(text = "Error: ${uiState.error}")
-            } else if (uiState.branch != null) {
-                val branch = uiState.branch!!
-                val pagerState = rememberPagerState(pageCount = { branch.barbers.size })
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.error != null -> Text(text = "Error: ${uiState.error}")
+                uiState.branch != null -> {
+                    val branch = uiState.branch!!
+                    val pagerState = rememberPagerState(pageCount = { branch.barbers.size })
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item {
-                        val imageResId = when (branch.imageRes) {
-                            "placeholder_branch" -> R.drawable.placeholder_branch
-                            else -> R.drawable.placeholder_branch
-                        }
-                        val imagePainter = painterResource(id = imageResId)
-                        Image(
-                            painter = imagePainter,
-                            contentDescription = branch.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .padding(16.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                        )
-                        Text(branch.name, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 16.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    // Item 2: Pager untuk Barber
-                    item {
-                        SectionTitle("Barber di Cabang Ini")
-                        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
-                            BranchBarberList(
-                                navController = navController,
-                                onBookNowClick = {
-                                    val barberId = branch.barbers[page].id
-                                    navController.navigate("booking/$barberId")
-                                },
-                                barber = branch.barbers[page]
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        item {
+                            val imageResId = when (branch.imageRes) {
+                                "placeholder_branch" -> R.drawable.placeholder_branch
+                                else -> R.drawable.placeholder_branch
+                            }
+                            Image(
+                                painter = painterResource(id = imageResId),
+                                contentDescription = branch.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxWidth().height(220.dp).padding(16.dp)
+                                    .clip(RoundedCornerShape(16.dp))
                             )
+                            Text(
+                                branch.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
 
-                    // Item 3: Judul Section Layanan
-                    item {
-                        SectionTitle("Layanan & Harga")
-                    }
+                        item {
+                            SectionTitle("Barber di Cabang Ini")
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { page ->
+                                BranchBarberList(
+                                    navController = navController,
+                                    onBookNowClick = {
+                                        val barberId = branch.barbers[page].id
+                                        // Mengirim ID barber dari data Firestore yang benar
+                                        navController.navigate("booking?barberId=$barberId")
+                                    },
+                                    barber = branch.barbers[page]
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
-                    // Item 4: Daftar Layanan
-                    items(uiState.services) { service ->
-                        ServiceItem(service = service)
+                        item { SectionTitle("Layanan & Harga") }
+                        items(uiState.services) { service -> ServiceItem(service = service) }
                     }
                 }
             }

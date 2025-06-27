@@ -8,7 +8,21 @@ import com.raymondHariyono.playcut.data.repository.AuthRepositoryImpl
 import com.raymondHariyono.playcut.data.repository.BarbershopRepositoryImpl
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
-import com.raymondHariyono.playcut.domain.usecase.*
+import com.raymondHariyono.playcut.domain.usecase.GetReservationByIdUseCase
+import com.raymondHariyono.playcut.domain.usecase.admin.AddBarberUseCase
+import com.raymondHariyono.playcut.domain.usecase.admin.GetReservationsByBranchUseCase
+import com.raymondHariyono.playcut.domain.usecase.auth.GetUserProfileUseCase
+import com.raymondHariyono.playcut.domain.usecase.reservation.CreateBookingUseCase
+import com.raymondHariyono.playcut.domain.usecase.reservation.DeleteReservationUseCase
+import com.raymondHariyono.playcut.domain.usecase.reservation.GetReservationsUseCase
+import com.raymondHariyono.playcut.domain.usecase.auth.LoginUseCase
+import com.raymondHariyono.playcut.domain.usecase.auth.LogoutUseCase
+import com.raymondHariyono.playcut.domain.usecase.auth.RegisterUseCase
+import com.raymondHariyono.playcut.domain.usecase.branch.GetBarberDetailsUseCase
+import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchDetailsUseCase
+import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchesUseCase
+import com.raymondHariyono.playcut.domain.usecase.home.GetHomePageDataUseCase
+import com.raymondHariyono.playcut.domain.usecase.reservation.UpdateReservationUseCase
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.GetServicesUseCase
 import dagger.Module
 import dagger.Provides
@@ -20,8 +34,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // --- Database & DAO Providers ---
-
     @Provides
     @Singleton
     fun provideAppDatabase(app: Application): AppDatabase {
@@ -29,7 +41,9 @@ object AppModule {
             app,
             AppDatabase::class.java,
             "playcut_database" // Anda bisa mengganti nama ini jika mau
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
@@ -113,5 +127,48 @@ object AppModule {
     @Singleton
     fun provideGetReservationsUseCase(repo: BarbershopRepository): GetReservationsUseCase {
         return GetReservationsUseCase(repo)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteReservationUseCase(repo: BarbershopRepository): DeleteReservationUseCase {
+        return DeleteReservationUseCase(repo)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetReservationByIdUseCase(repo: BarbershopRepository): GetReservationByIdUseCase {
+        return GetReservationByIdUseCase(repo)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateReservationUseCase(repo: BarbershopRepository): UpdateReservationUseCase {
+        return UpdateReservationUseCase(repo)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetUserProfileUseCase(repo: AuthRepository): GetUserProfileUseCase {
+        return GetUserProfileUseCase(repo)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLogoutUseCase(repo: AuthRepository): LogoutUseCase {
+        return LogoutUseCase(repo)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideGetReservationsByBranchUseCase(repo: BarbershopRepository): GetReservationsByBranchUseCase {
+        return GetReservationsByBranchUseCase(repo)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddBarberUseCase(repo: BarbershopRepository): AddBarberUseCase {
+        return AddBarberUseCase(repo)
     }
 }

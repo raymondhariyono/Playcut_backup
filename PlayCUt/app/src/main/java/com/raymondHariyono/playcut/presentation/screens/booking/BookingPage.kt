@@ -1,6 +1,5 @@
-
 package com.raymondHariyono.playcut.presentation.screens.booking
-import androidx.compose.foundation.BorderStroke
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -16,46 +15,50 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.raymondHariyono.playcut.domain.model.Barber
+import com.raymondHariyono.playcut.domain.model.Reservation
+import com.raymondHariyono.playcut.domain.usecase.branch.BarberDetails
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingPage(
     navController: NavController,
-    barberId: Int,
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val combinedResult = uiState.bookingResult ?: uiState.updateResult
 
-    // Panggil loadBarber saat halaman dimuat pertama kali
-    LaunchedEffect(Unit) {
-        viewModel.loadBarber(barberId)
-    }
-
-    // Handle hasil booking
-    LaunchedEffect(uiState.bookingResult) {
-        uiState.bookingResult?.let { result ->
-            val message = if (result.isSuccess) "Booking Berhasil!" else "Booking Gagal: ${result.exceptionOrNull()?.message}"
-            scope.launch {
-                snackbarHostState.showSnackbar(message)
+    LaunchedEffect(combinedResult) {
+        combinedResult?.let {
+            val message = if (it.isSuccess) {
+                if (uiState.isEditMode) "Perubahan Disimpan!" else "Booking Berhasil!"
+            } else {
+                "Gagal: ${it.exceptionOrNull()?.message}"
             }
+
+            scope.launch { snackbarHostState.showSnackbar(message) }
+
             viewModel.bookingResultConsumed()
 
-            if (result.isSuccess) {
+            if (it.isSuccess) {
                 navController.popBackStack()
             }
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(title = { Text(if (uiState.isEditMode) "Edit Reservasi" else "Buat Reservasi") })
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -64,19 +67,16 @@ fun BookingPage(
             contentAlignment = Alignment.Center
         ) {
             when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator()
-                }
-                uiState.error != null -> {
-                    Text("Error: ${uiState.error}")
-                }
-                uiState.barber != null -> {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.error != null -> Text(text = "Error: ${uiState.error}")
+                uiState.barberDetails != null -> {
                     BookingForm(
-                        barber = uiState.barber!!,
                         uiState = uiState,
-                        onServiceSelect = viewModel::onServiceSelected,
+                        onCustomerNameChange = viewModel::onCustomerNameChange,
+                        onMainServiceSelect = viewModel::onMainServiceSelected,
+                        onOtherServicesSelect = viewModel::onOtherServicesSelected,
                         onTimeSelect = viewModel::onTimeSelected,
-                        onConfirmClick = viewModel::onConfirmBooking
+                        onConfirmClick = viewModel::onConfirmClick
                     )
                 }
             }
@@ -86,62 +86,59 @@ fun BookingPage(
 
 @Composable
 fun BookingForm(
-    barber: Barber,
     uiState: BookingUiState,
-    onServiceSelect: (String) -> Unit,
+    onCustomerNameChange: (String) -> Unit,
+    onMainServiceSelect: (String) -> Unit,
+    onOtherServicesSelect: (List<String>) -> Unit,
     onTimeSelect: (String) -> Unit,
     onConfirmClick: () -> Unit
 ) {
-    val mainServices = listOf("Haircut", "Haircut + Keramas", "Haircut + Keramas + Treatment")
-    val isConfirmEnabled = uiState.selectedService.isNotBlank() && uiState.selectedTime.isNotBlank()
+    // Ambil barberDetails dari uiState. Jika null, form tidak akan dirender.
+    val barberDetails = uiState.barberDetails ?: return
+
+    val isConfirmEnabled = uiState.customerName.isNotBlank() &&
+            uiState.selectedTime.isNotBlank() &&
+            (uiState.selectedMainService.isNotBlank() || uiState.selectedOtherServices.isNotEmpty())
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
         Text(text = "Pesan dengan", style = MaterialTheme.typography.titleLarge)
-        Text(text = barber.name, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+        Text(text = barberDetails.barber.name, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+        Text(text = "di ${barberDetails.branch.name}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.secondary)
         Spacer(Modifier.height(24.dp))
+
+        SectionTitle("Nama Pelanggan")
+        OutlinedTextField(value = uiState.customerName, onValueChange = onCustomerNameChange, label = { Text("Masukkan nama lengkap Anda") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        Spacer(Modifier.height(16.dp))
 
         SectionTitle("Pilih Layanan Utama")
-        mainServices.forEach { service ->
-            ServiceRadioButton(
-                serviceName = service,
-                isSelected = uiState.selectedService == service,
-                onSelect = { onServiceSelect(service) }
-            )
-        }
-
+        ServicesSelectionDropDown(selectedService = uiState.selectedMainService, onServiceSelected = onMainServiceSelect)
         Spacer(Modifier.height(16.dp))
-        SectionTitle("Pilih Waktu Tersedia")
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 100.dp),
-            modifier = Modifier.height(150.dp), // Tentukan tinggi agar tidak error di dalam Column
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(barber.availableTimes) { time ->
-                SelectableItem(
-                    text = time,
-                    isSelected = uiState.selectedTime == time,
-                    onClick = { onTimeSelect(time) }
-                )
-            }
-        }
 
+        SectionTitle("Layanan Tambahan (Opsional)")
+        OtherServicesGrid(selectedServices = uiState.selectedOtherServices, onServiceSelected = onOtherServicesSelect)
+        Spacer(Modifier.height(16.dp))
+
+        SectionTitle("Pilih Waktu Tersedia")
+        TimeSelectionGrid(
+            availableTimes = barberDetails.barber.availableTimes,
+            selectedTime = uiState.selectedTime,
+            reservations = uiState.existingReservations,
+            barberName = barberDetails.barber.name,
+            onTimeSelected = onTimeSelect,
+            isEnabled = uiState.canEditTime
+        )
         Spacer(Modifier.height(24.dp))
+
         Button(
             onClick = onConfirmClick,
-            enabled = isConfirmEnabled, // Tombol aktif jika semua sudah dipilih
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            enabled = isConfirmEnabled,
+            modifier = Modifier.fillMaxWidth().height(56.dp)
         ) {
-            Text("Konfirmasi Booking", style = MaterialTheme.typography.titleMedium)
+            Text(if (uiState.isEditMode) "Simpan Perubahan" else "Konfirmasi Booking")
         }
         Spacer(Modifier.height(32.dp))
     }
@@ -159,50 +156,113 @@ private fun SectionTitle(title: String) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ServiceRadioButton(serviceName: String, isSelected: Boolean, onSelect: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(selected = isSelected, onClick = onSelect)
-        Spacer(Modifier.width(8.dp))
-        Text(text = serviceName, style = MaterialTheme.typography.bodyLarge)
+fun ServicesSelectionDropDown(selectedService: String, onServiceSelected: (String) -> Unit) {
+    val dropdownServices = listOf("Haircut", "Haircut + Keramas", "Haircut + Keramas + Treatment")
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        OutlinedTextField(
+            readOnly = true,
+            value = selectedService,
+            onValueChange = {},
+            label = { Text("Pilih layanan utama...") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth()
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            dropdownServices.forEach { service ->
+                DropdownMenuItem(
+                    text = { Text(service) },
+                    onClick = {
+                        onServiceSelected(service)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
 
+@Composable
+fun OtherServicesGrid(
+    selectedServices: List<String>,
+    onServiceSelected: (List<String>) -> Unit
+) {
+    val otherServices = listOf("Coloring", "Shave", "Hair Spa", "Perming")
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp),
+        userScrollEnabled = false
+    ) {
+        items(otherServices) { service ->
+            val isSelected = selectedServices.contains(service)
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    val currentSelection = selectedServices.toMutableList()
+                    if (isSelected) {
+                        currentSelection.remove(service)
+                    } else {
+                        currentSelection.add(service)
+                    }
+                    // Kirim list yang sudah diperbarui kembali ke ViewModel
+                    onServiceSelected(currentSelection)
+                },
+                label = { Text(service) },
+                leadingIcon = if (isSelected) { { Icon(Icons.Default.Check, contentDescription = "Selected") } } else null
+            )
+        }
+    }
+}
 
 @Composable
-fun SelectableItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    val containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-
-    Card(
-        modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = BorderStroke(if (isSelected) 2.dp else 1.dp, borderColor)
+fun TimeSelectionGrid(
+    availableTimes: List<String>, // Menerima daftar waktu
+    selectedTime: String,
+    reservations: List<Reservation>,
+    barberName: String, // Menerima nama barber untuk validasi
+    onTimeSelected: (String) -> Unit,
+    isEnabled: Boolean
+) {
+    val today = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 90.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.heightIn(min = 60.dp, max = 200.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = text, textAlign = TextAlign.Center)
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                        .size(16.dp)
-                )
+        items(availableTimes) { time ->
+            val isTaken = reservations.any { it.barberName == barberName && it.bookingTime == time && it.bookingDate == today }
+            val isSelected = selectedTime == time
+
+            val finalIsEnabled = isEnabled && !isTaken // Tombol non-aktif jika isEnabled=false ATAU sudah dipesan
+
+            val cardColors = when {
+                !finalIsEnabled -> CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                isSelected -> CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                else -> CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            }
+            val textColor = when {
+                !finalIsEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            Card(
+                modifier = Modifier.clickable(enabled = finalIsEnabled) { onTimeSelected(time) },
+                shape = RoundedCornerShape(8.dp),
+                colors = cardColors
+            ) {
+                Box(modifier = Modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+                    Text(text = time, color = textColor, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }

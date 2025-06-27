@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "reservations")
 data class ReservationEntity(
     @PrimaryKey val id: String,
+    val barberId: Int,
     val bookingDate: String,
     val bookingTime: String,
     val service: String,

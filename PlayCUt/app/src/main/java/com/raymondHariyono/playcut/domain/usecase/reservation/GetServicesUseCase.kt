@@ -1,4 +1,4 @@
-package com.raymondHariyono.playcut.domain.usecase
+package com.raymondHariyono.playcut.domain.usecase.reservation
 
 import com.raymondHariyono.playcut.domain.model.Service
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository

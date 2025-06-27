@@ -1,5 +1,5 @@
 // File: app/src/main/java/com/raymondHariyono/playcut/domain/usecase/GetHomePageDataUseCase.kt
-package com.raymondHariyono.playcut.domain.usecase
+package com.raymondHariyono.playcut.domain.usecase.home
 
 import com.raymondHariyono.playcut.domain.model.Branch
 import com.raymondHariyono.playcut.domain.model.HomeService
