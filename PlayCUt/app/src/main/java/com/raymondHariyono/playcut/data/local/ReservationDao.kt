@@ -26,4 +26,7 @@ interface ReservationDao {
 
     @Query("SELECT * FROM reservations WHERE branchName = :branchName ORDER BY bookingDate DESC")
     fun getReservationsByBranch(branchName: String): Flow<List<ReservationEntity>>
+
+    @Query("SELECT * FROM reservations WHERE userId = :userId")
+    fun getReservationsByUserId(userId: String): Flow<List<ReservationEntity>>
 }

@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class BarbershopRepositoryImpl(
-    private val reservationDao: ReservationDao
+    private val reservationDao: ReservationDao,
+    firebaseAuth: FirebaseAuth
 ) : BarbershopRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
@@ -49,18 +50,22 @@ class BarbershopRepositoryImpl(
 
     override fun getBarberById(barberId: Int): Flow<BarberDetails?> {
         return getBranches().map { allBranches ->
-            for (branch in allBranches) {
-                val foundBarber = branch.barbers.find { it.id == barberId }
-                if (foundBarber != null) {
-                    Log.d(TAG, "Barber ditemukan di cabang: ${branch.name}")
-                    return@map BarberDetails(barber = foundBarber, branch = branch)
+            try {
+                for (branch in allBranches) {
+                    val foundBarber = branch.barbers.find { it.id == barberId }
+                    if (foundBarber != null) {
+                        Log.d(TAG, "Barber ditemukan di cabang: ${branch.name}")
+                        return@map BarberDetails(barber = foundBarber, branch = branch)
+                    }
                 }
+                Log.d(TAG, "Barber ID $barberId tidak ditemukan di cabang mana pun.")
+                null
+            } catch (e: Exception) {
+                Log.e(TAG, "Gagal menemukan barber", e)
+                null
             }
-            Log.d(TAG, "Barber ID $barberId tidak ditemukan di cabang mana pun.")
-            null
         }
     }
-
 
     override fun getServices(): Flow<List<Service>> = flow {
         try {
@@ -70,9 +75,10 @@ class BarbershopRepositoryImpl(
             Log.d(TAG, "Successfully fetched ${services.size} services.")
         } catch (e: Exception) {
             Log.e(TAG, "Error getting services", e)
-            emit(emptyList())
+            throw e //biarkan exception dilempar ke ViewModel
         }
     }
+
 
     override fun getHomeServices(): Flow<List<HomeService>> = flow {
         try {

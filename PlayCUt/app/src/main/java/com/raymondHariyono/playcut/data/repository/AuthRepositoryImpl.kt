@@ -3,6 +3,8 @@ package com.raymondHariyono.playcut.data.repository
 import android.content.ContentValues.TAG
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.raymondHariyono.playcut.domain.model.UserProfile
@@ -21,37 +23,31 @@ class AuthRepositoryImpl : AuthRepository {
             Result.success(Unit)
         } catch (e: Exception) {
             val errorMessage = when (e) {
-                is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException -> "Password yang Anda masukkan salah."
-                is com.google.firebase.auth.FirebaseAuthInvalidUserException -> "Email tidak terdaftar."
+                is FirebaseAuthInvalidCredentialsException -> "Password yang Anda masukkan salah."
+                is FirebaseAuthInvalidUserException -> "Email tidak terdaftar."
                 else -> "Login gagal: ${e.localizedMessage}"
             }
             Result.failure(Exception(errorMessage))
         }
     }
 
-
     override suspend fun registerUser(credentials: RegisterCredentials): Result<Unit> {
         return try {
-            // Langkah 1: Buat pengguna di Authentication
             val authResult = firebaseAuth.createUserWithEmailAndPassword(credentials.email, credentials.pass).await()
             val firebaseUser = authResult.user ?: throw Exception("Gagal membuat user di Firebase Auth.")
 
             Log.d(TAG, "Auth user berhasil dibuat dengan UID: ${firebaseUser.uid}")
 
-            // Langkah 2: Siapkan objek UserProfile untuk disimpan ke Firestore
             val userProfile = UserProfile(
                 name = credentials.name,
                 email = credentials.email,
-                // Pengguna baru selalu diberi peran "customer" secara default
                 role = "customer",
-                branchId = 0, // 0 menandakan bukan admin cabang
+                branchId = 0,
                 branchName = "",
-                phoneNumber = "", // Bisa ditambahkan di form registrasi nanti
+                phoneNumber = "", // Disesuaikan dengan UserProfile, diinisialisasi kosong
                 photoUrl = ""
             )
 
-            // Langkah 3: Simpan objek profil ini ke Firestore
-            // Gunakan UID dari Auth sebagai ID dokumen untuk sinkronisasi
             firestore.collection("users").document(firebaseUser.uid).set(userProfile).await()
             Log.d(TAG, "Profil user berhasil disimpan ke Firestore.")
 
@@ -67,21 +63,23 @@ class AuthRepositoryImpl : AuthRepository {
         }
     }
 
-
     override suspend fun getCurrentUserProfile(): UserProfile? {
-    val firebaseUser = firebaseAuth.currentUser ?: return null // Jika tidak ada user, langsung return null
-    return try {
-        val documentSnapshot = firestore.collection("users").document(firebaseUser.uid).get().await()
-
-        // Kembalikan objek UserProfile jika dokumen ada, atau null jika tidak ada.
-        documentSnapshot.toObject(UserProfile::class.java)
-    } catch (e: Exception) {
-        Log.e(TAG, "Gagal mengambil profil dari Firestore: ${e.message}", e)
-        null // Kembalikan null jika terjadi error koneksi atau lainnya
+        val firebaseUser = firebaseAuth.currentUser ?: return null
+        return try {
+            val documentSnapshot = firestore.collection("users").document(firebaseUser.uid).get().await()
+            documentSnapshot.toObject(UserProfile::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Gagal mengambil profil dari Firestore: ${e.message}", e)
+            null
+        }
     }
-}
 
-    override suspend fun logoutUser() {
-        firebaseAuth.signOut()
+    override suspend fun logoutUser(): Result<Unit> {
+        return try {
+            firebaseAuth.signOut()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

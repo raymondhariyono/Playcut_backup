@@ -2,6 +2,7 @@ package com.raymondHariyono.playcut.di
 
 import android.app.Application
 import androidx.room.Room
+import com.google.firebase.auth.FirebaseAuth
 import com.raymondHariyono.playcut.data.local.AppDatabase
 import com.raymondHariyono.playcut.data.local.ReservationDao
 import com.raymondHariyono.playcut.data.repository.AuthRepositoryImpl
@@ -63,10 +64,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideBarbershopRepository(dao: ReservationDao): BarbershopRepository {
-        // Menyediakan implementasi untuk BarbershopRepository.
-        // Hilt secara otomatis akan memberikan 'dao' dari fungsi provideReservationDao di atas.
-        return BarbershopRepositoryImpl(dao)
+    fun provideBarbershopRepository(dao: ReservationDao, firebaseAuth: FirebaseAuth): BarbershopRepository {
+        return BarbershopRepositoryImpl(dao, firebaseAuth)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
     }
 
     // --- Use Case Providers (BAGIAN PALING PENTING) ---

@@ -7,8 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.raymondHariyono.playcut.presentation.screens.admin.AddBarberPage
+import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.AddBarberPage
 import com.raymondHariyono.playcut.presentation.screens.admin.AdminDashboardPage
+import com.raymondHariyono.playcut.presentation.screens.admin.edit.EditReservationPage
 import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginPage
 import com.raymondHariyono.playcut.presentation.screens.booking.BookingPage
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.DetailBranchPage
@@ -81,6 +82,18 @@ fun AppNavigator() {
             )
         ) {
             BookingPage(navController = navController, viewModel = hiltViewModel())
+        }
+        composable(
+            route = "editReservation/{reservationId}",
+            arguments = listOf(navArgument("reservationId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reservationId = backStackEntry.arguments?.getString("reservationId")
+            if (reservationId != null) {
+                EditReservationPage(navController = navController, reservationId = reservationId)
+            } else {
+                // Handle kasus di mana reservationId null (misal: kembali ke dashboard)
+                navController.popBackStack()
+            }
         }
     }
 }

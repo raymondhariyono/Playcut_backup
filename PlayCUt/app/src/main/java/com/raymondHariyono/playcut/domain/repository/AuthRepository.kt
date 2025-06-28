@@ -16,5 +16,5 @@ interface AuthRepository {
 
     suspend fun getCurrentUserProfile(): UserProfile?
 
-    suspend fun logoutUser()
+    suspend fun logoutUser(): Result<Unit>
 }
