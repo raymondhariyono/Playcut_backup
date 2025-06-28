@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/screens/splash/SplashScreen.kt
 package com.raymondHariyono.playcut.presentation.screens.splash
 
 

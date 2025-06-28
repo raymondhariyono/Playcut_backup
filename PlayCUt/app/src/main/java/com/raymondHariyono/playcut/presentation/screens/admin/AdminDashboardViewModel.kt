@@ -1,109 +1,115 @@
 package com.raymondHariyono.playcut.presentation.screens.admin
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.raymondHariyono.playcut.domain.usecase.admin.GetReservationsByBranchUseCase
-import com.raymondHariyono.playcut.domain.usecase.auth.GetUserProfileUseCase // Pastikan ini diimport
-import com.raymondHariyono.playcut.domain.usecase.reservation.DeleteReservationUseCase // Pastikan ini diimport
-import com.raymondHariyono.playcut.domain.usecase.auth.LogoutUseCase // Pastikan ini diimport
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.raymondHariyono.playcut.domain.model.Reservation
+import com.raymondHariyono.playcut.domain.model.UserProfile
+import com.raymondHariyono.playcut.domain.repository.AuthRepository
+import com.raymondHariyono.playcut.domain.usecase.auth.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class AdminDashboardViewModel @Inject constructor(
-    private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val getReservationsByBranchUseCase: GetReservationsByBranchUseCase,
-    private val logoutUseCase: LogoutUseCase, // Inject LogoutUseCase
-    private val deleteReservationUseCase: DeleteReservationUseCase // Inject DeleteReservationUseCase
+    private val authRepository: AuthRepository,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
+
+    private val db = Firebase.firestore
 
     private val _uiState = MutableStateFlow(AdminDashboardUiState())
     val uiState: StateFlow<AdminDashboardUiState> = _uiState.asStateFlow()
 
-    // State untuk dialog konfirmasi penghapusan
-    private val _reservationToDeleteId = MutableStateFlow<String?>(null)
-    val reservationToDeleteId: StateFlow<String?> = _reservationToDeleteId.asStateFlow()
+    val reservationToDeleteId = MutableStateFlow<String?>(null)
 
     init {
-        loadAdminData()
+        loadAdminProfileAndReservations()
     }
 
-    private fun loadAdminData() {
+    private fun loadAdminProfileAndReservations() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val profileResult = getUserProfileUseCase() // Dapatkan Result dari UseCase
-
-            profileResult.onSuccess { userProfile ->
-                if (userProfile?.role == "admin" && userProfile.branchName != null) {
-                    _uiState.update { it.copy(adminProfile = userProfile, adminBranchName = userProfile.branchName) } // Perbarui adminBranchName
-
-                    getReservationsByBranchUseCase(userProfile.branchName)
-                        .catch { e ->
-                            _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Gagal memuat reservasi.") }
-                            Log.e("AdminDashboardVM", "Error loading reservations: ${e.message}", e)
-                        }
-                        .collect { reservations ->
-                            _uiState.update { it.copy(isLoading = false, reservations = reservations, errorMessage = null) } // Gunakan 'reservations'
-                        }
-                } else {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "Akses ditolak: Bukan akun admin atau profil tidak ditemukan.") }
-                }
-            }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Gagal memuat data admin.") }
-                Log.e("AdminDashboardVM", "Error loading admin data: ${e.message}", e)
+            // Pertama, dapatkan profil admin
+            val profile = authRepository.getCurrentUserProfile()
+            if (profile is UserProfile.Admin) {
+                _uiState.update { it.copy(adminProfile = profile) }
+                // Jika berhasil, gunakan branchId dari profil untuk memuat reservasi
+                loadReservationsForBranch(profile.branchName)
+            } else {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Gagal memuat profil admin.") }
             }
         }
     }
 
-    fun onLogoutClick() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) } // Tampilkan loading saat logout
-            logoutUseCase().onSuccess {
-                _uiState.update { it.copy(isLoading = false, isLoggedOut = true, errorMessage = null) } // Set isLoggedOut
-            }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Gagal logout.") }
-                Log.e("AdminDashboardVM", "Logout failed: ${e.message}", e)
-            }
-        }
+
+    fun onCancelReservationClick(id: String) {
+        reservationToDeleteId.value = id
     }
 
-    // Fungsi untuk memicu dialog konfirmasi penghapusan
-    fun onCancelReservationClick(reservationId: String) {
-        _reservationToDeleteId.value = reservationId
-    }
-
-    // Fungsi untuk menutup dialog konfirmasi
     fun dismissDeleteConfirmation() {
-        _reservationToDeleteId.value = null
+        reservationToDeleteId.value = null
     }
 
-    // Fungsi untuk mengeksekusi penghapusan setelah konfirmasi
     fun onConfirmDeletion() {
-        val idToDelete = _reservationToDeleteId.value ?: return
-        dismissDeleteConfirmation()
-
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null, snackbarMessage = null) }
-            val result = deleteReservationUseCase(idToDelete)
+            val id = reservationToDeleteId.value ?: return@launch
+            try {
+                db.collection("reservations").document(id).delete().await()
 
-            result.onSuccess {
-                _uiState.update { it.copy(isLoading = false, snackbarMessage = "Reservasi berhasil dihapus.") }
-            }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Gagal menghapus reservasi.") }
-                Log.e("AdminDashboardVM", "Error deleting reservation: ${e.message}", e)
+                dismissDeleteConfirmation()
+                _uiState.update { it.copy(snackbarMessage = "Reservasi berhasil dibatalkan.") }
+
+                (_uiState.value.adminProfile as? UserProfile.Admin)?.branchName?.let {
+                    loadReservationsForBranch(it)
+                }
+            } catch (e: Exception) {
+                dismissDeleteConfirmation()
+                _uiState.update { it.copy(errorMessage = "Gagal membatalkan reservasi.") }
+            }
+        }
+    }
+
+    private fun loadReservationsForBranch(branchName: String) {
+        viewModelScope.launch {
+            if (branchName.isEmpty()) {
+                _uiState.update { it.copy(isLoading = false, reservations = emptyList()) }
+                return@launch
+            }
+
+            try {
+                val reservationsSnapshot = db.collection("reservations")
+                    .whereEqualTo("branchName", branchName)
+                    .orderBy("dateTime", Query.Direction.DESCENDING)
+                    .get()
+                    .await()
+
+                val reservations = reservationsSnapshot.toObjects(Reservation::class.java)
+                _uiState.update { it.copy(isLoading = false, reservations = reservations) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error mengambil reservasi: ${e.localizedMessage}"
+                    )
+                }
             }
         }
     }
 
     fun snackbarMessageShown() {
         _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
+    fun onLogoutClick() {
+        viewModelScope.launch {
+            logoutUseCase()
+            _uiState.update { it.copy(isLoggedOut = true) }
+        }
     }
 }

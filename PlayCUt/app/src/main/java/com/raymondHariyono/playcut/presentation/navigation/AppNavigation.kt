@@ -9,12 +9,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.AddBarberPage
 import com.raymondHariyono.playcut.presentation.screens.admin.AdminDashboardPage
-import com.raymondHariyono.playcut.presentation.screens.admin.edit.EditReservationPage
+import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.schedule.ManageBarbersPage
 import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginPage
 import com.raymondHariyono.playcut.presentation.screens.booking.BookingPage
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.DetailBranchPage
 import com.raymondHariyono.playcut.presentation.screens.branch.search.SearchBranchPage
 import com.raymondHariyono.playcut.presentation.screens.home.HomePage
+import com.raymondHariyono.playcut.presentation.screens.map.MapPage
 import com.raymondHariyono.playcut.presentation.screens.onboarding.OnBoardingPage
 import com.raymondHariyono.playcut.presentation.screens.profile.ProfilePage
 import com.raymondHariyono.playcut.presentation.screens.reservation.YourReservationPage
@@ -83,17 +84,16 @@ fun AppNavigator() {
         ) {
             BookingPage(navController = navController, viewModel = hiltViewModel())
         }
+
         composable(
-            route = "editReservation/{reservationId}",
-            arguments = listOf(navArgument("reservationId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val reservationId = backStackEntry.arguments?.getString("reservationId")
-            if (reservationId != null) {
-                EditReservationPage(navController = navController, reservationId = reservationId)
-            } else {
-                // Handle kasus di mana reservationId null (misal: kembali ke dashboard)
-                navController.popBackStack()
-            }
+            "manageBarbers/{branchId}",
+            arguments = listOf(navArgument("branchId") { type = NavType.IntType })
+        ) {
+            ManageBarbersPage(navController = navController, viewModel = hiltViewModel())
+        }
+
+        composable("map") {
+            MapPage(navController = navController)
         }
     }
 }

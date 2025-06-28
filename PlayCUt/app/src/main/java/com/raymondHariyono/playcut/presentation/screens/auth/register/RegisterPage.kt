@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/screens/user/RegisterPage.kt
 package com.raymondHariyono.playcut.presentation.screens.user
 
 import android.widget.Toast
@@ -57,7 +56,6 @@ fun RegisterPage(
         Text("Daftar Akun Baru", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. Tampilkan pesan error jika ada
         if (uiState.error != null) {
             Text(
                 text = uiState.error!!,
@@ -67,7 +65,6 @@ fun RegisterPage(
             )
         }
 
-        // 4. Hubungkan semua TextField dengan ViewModel
         OutlinedTextField(value = uiState.name, onValueChange = viewModel::onNameChange, label = { Text("Nama Lengkap") }, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(value = uiState.username, onValueChange = viewModel::onUsernameChange, label = { Text("Username") }, modifier = Modifier.fillMaxWidth())
@@ -82,7 +79,6 @@ fun RegisterPage(
                 focusManager.clearFocus()
                 viewModel.onRegisterClick()
             },
-            // 5. Status tombol diatur oleh state
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {

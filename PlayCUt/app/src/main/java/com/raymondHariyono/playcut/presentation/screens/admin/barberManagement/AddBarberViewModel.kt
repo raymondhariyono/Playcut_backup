@@ -29,12 +29,12 @@ class AddBarberViewModel @Inject constructor(
     }
 
 
-    fun onAddBarberClick(branchId: Int) { // Ubah nama fungsi agar lebih jelas
+    fun onAddBarberClick(branchId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null, successMessage = null) }
 
             val newBarber = Barber(
-                id = (System.currentTimeMillis() % 1000).toInt(), // ID sederhana, bisa diubah jika ada kebutuhan ID unik yang lebih kuat
+                id = (System.currentTimeMillis() % 1000).toInt(),
                 name = _uiState.value.barberNameInput.trim(),
                 contact = _uiState.value.barberContactInput.trim(),
                 imageRes = "placeholder_barber",
@@ -48,9 +48,9 @@ class AddBarberViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         successMessage = "Barber '${newBarber.name}' berhasil ditambahkan!",
-                        isBarberAdded = true, // Set true untuk memicu navigasi
-                        barberNameInput = "", // Bersihkan input
-                        barberContactInput = "" // Bersihkan input
+                        isBarberAdded = true,
+                        barberNameInput = "",
+                        barberContactInput = ""
                     )
                 }
             }.onFailure { e ->
@@ -64,12 +64,10 @@ class AddBarberViewModel @Inject constructor(
         }
     }
 
-    // Fungsi untuk mengonsumsi pesan agar tidak tampil berulang
     fun messageShown() {
         _uiState.update { it.copy(successMessage = null, errorMessage = null) }
     }
 
-    // Fungsi untuk mereset flag navigasi
     fun barberAddedNavigated() {
         _uiState.update { it.copy(isBarberAdded = false) }
     }

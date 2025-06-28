@@ -2,6 +2,8 @@ package com.raymondHariyono.playcut.presentation.screens.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.raymondHariyono.playcut.domain.model.UserProfile
+import com.raymondHariyono.playcut.domain.model.UserRole
 import com.raymondHariyono.playcut.domain.usecase.auth.GetUserProfileUseCase
 import com.raymondHariyono.playcut.domain.usecase.auth.LoginCredentials
 import com.raymondHariyono.playcut.domain.usecase.auth.LoginUseCase
@@ -15,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase // Inject UseCase untuk profil
+    private val getUserProfileUseCase: GetUserProfileUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -33,7 +35,6 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // Langkah 1: Jalankan UseCase untuk Login terlebih dahulu
             val loginResult = loginUseCase(
                 LoginCredentials(
                     email = _uiState.value.email.trim(),
@@ -41,25 +42,33 @@ class LoginViewModel @Inject constructor(
                 )
             )
 
-            // Langkah 2: Periksa hasil login
             if (loginResult.isSuccess) {
-                // Jika login berhasil, LANJUTKAN dengan mengambil profil
-                val profileResult = getUserProfileUseCase()
-                profileResult.onSuccess { profile ->
-                    // Jika profil didapat, update state dengan sukses dan role
+                val profile = getUserProfileUseCase()
+
+                val role = when (profile) {
+                    is UserProfile.Admin -> UserRole.ADMIN
+                    is UserProfile.Barber -> UserRole.BARBER
+                    is UserProfile.Customer -> UserRole.CUSTOMER
+                    else -> null
+                }
+
+                if (role != null) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             loginSuccess = true,
-                            userRole = profile?.role
+                            userRole = role
                         )
                     }
-                }.onFailure {e ->
-                    // Jika GAGAL mengambil profil SETELAH login
-                    _uiState.update { it.copy(isLoading = false, error = "Login berhasil, tapi gagal mengambil data profil: ${e.message}") }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "Login berhasil, tapi data profil tidak ditemukan."
+                        )
+                    }
                 }
             } else {
-                // Jika GAGAL login dari awal
                 _uiState.update {
                     it.copy(isLoading = false, error = loginResult.exceptionOrNull()?.message)
                 }

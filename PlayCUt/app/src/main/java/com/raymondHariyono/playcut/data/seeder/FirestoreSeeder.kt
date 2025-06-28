@@ -18,7 +18,6 @@ class FirestoreSeeder(private val db: FirebaseFirestore) {
         Service("Braids", "Rp 80.000", "Gaya Rambut")
     )
 
-    // 2. DATA CABANG DIPERBANYAK MENJADI 5
     private val branchesToSeed = listOf(
         // Cabang 1 (Lama)
         Branch(
@@ -70,10 +69,8 @@ class FirestoreSeeder(private val db: FirebaseFirestore) {
         )
     )
 
-    // Logika seeder tidak perlu diubah, sudah benar
     suspend fun seedDataIfNeeded() {
         Log.d("FirestoreSeeder", "Checking if seeding is needed...")
-        // Seed services
         if (isCollectionEmpty("services")) {
             Log.d("FirestoreSeeder", "Seeding services...")
             val batch = db.batch()
@@ -87,7 +84,6 @@ class FirestoreSeeder(private val db: FirebaseFirestore) {
             Log.d("FirestoreSeeder", "Services collection already has data. Skipping.")
         }
 
-        // Seed branches
         if (isCollectionEmpty("branches")) {
             Log.d("FirestoreSeeder", "Seeding branches...")
             val batch = db.batch()

@@ -40,8 +40,7 @@ fun BranchList(
         Column {
             val imageResId = when (branch.imageRes) {
                 "placeholder_branch" -> R.drawable.placeholder_branch
-                // Tambahkan case lain jika ada gambar lain di masa depan
-                else -> R.drawable.placeholder_branch // Gambar default jika tidak ditemukan
+                else -> R.drawable.placeholder_branch
             }
 
             Image(

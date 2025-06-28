@@ -79,7 +79,6 @@ fun DetailBranchPage(
                                     navController = navController,
                                     onBookNowClick = {
                                         val barberId = branch.barbers[page].id
-                                        // Mengirim ID barber dari data Firestore yang benar
                                         navController.navigate("booking?barberId=$barberId")
                                     },
                                     barber = branch.barbers[page]

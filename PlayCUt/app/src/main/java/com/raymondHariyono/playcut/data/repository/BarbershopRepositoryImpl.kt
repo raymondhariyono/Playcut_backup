@@ -24,7 +24,6 @@ class BarbershopRepositoryImpl(
     private val firestore = FirebaseFirestore.getInstance()
     private val TAG = "FirestoreRepo"
 
-    //FUNGSI UNTUK DATA REMOTE
 
     override fun getBranches(): Flow<List<Branch>> = flow {
         try {
@@ -110,19 +109,18 @@ class BarbershopRepositoryImpl(
     }
 
 
-    //FUNGSI UNTUK DATA LOKAL
     override fun getReservations(): Flow<List<Reservation>> {
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         return reservationDao.getAllReservations().map { entityList ->
             entityList
                 .filter { it.userId == currentUserId }
-                .map { it.toDomainModel() } // Menggunakan helper
+                .map { it.toDomainModel() }
         }
     }
 
     override fun getReservationById(reservationId: String): Flow<Reservation?> {
         return reservationDao.getReservationById(reservationId).map { entity ->
-            entity?.toDomainModel() // Menggunakan helper dan aman dari null
+            entity?.toDomainModel()
         }
     }
 
@@ -130,7 +128,6 @@ class BarbershopRepositoryImpl(
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("User belum login.")
         val reservationWithUser = reservation.copy(userId = currentUserId)
         try {
-            // Langkah 1: Simpan ke Firestore terlebih dahulu sebagai sumber kebenaran utama
             firestore.collection("reservations").document(reservation.id).set(reservationWithUser).await()
 
             Log.d(TAG, "Reservasi berhasil disimpan ke Firestore dengan ID: ${reservation.id}")
@@ -145,14 +142,11 @@ class BarbershopRepositoryImpl(
 
 
     override suspend fun updateReservation(reservation: Reservation) {
-        // Fungsi ini sudah benar, tidak perlu diubah.
         try {
-            // Langkah 1: Simpan perubahan ke Firestore terlebih dahulu
             firestore.collection("reservations").document(reservation.id)
                 .set(reservation, SetOptions.merge()).await()
             Log.d(TAG, "Reservasi berhasil di-update di Firestore dengan ID: ${reservation.id}")
 
-            // Langkah 2: Jika di Firestore berhasil, update juga database lokal Room
             reservationDao.updateReservation(reservation.toEntity())
             Log.d(TAG, "Reservasi juga berhasil di-update di database lokal Room.")
 
@@ -164,17 +158,14 @@ class BarbershopRepositoryImpl(
 
     override suspend fun deleteReservation(reservationId: String) {
         try {
-            // Langkah 1: Hapus dokumen dari Firestore terlebih dahulu
             firestore.collection("reservations").document(reservationId).delete().await()
             Log.d(TAG, "Reservasi berhasil dihapus dari Firestore dengan ID: $reservationId")
 
-            // Langkah 2: Jika di Firestore berhasil, hapus juga dari database lokal Room
             reservationDao.deleteReservationById(reservationId)
             Log.d(TAG, "Reservasi juga berhasil dihapus dari database lokal Room.")
 
         } catch (e: Exception) {
             Log.e(TAG, "Gagal menghapus reservasi: ${e.message}", e)
-            // Lemparkan kembali exception agar UseCase bisa menangkapnya
             throw e
         }
     }
@@ -201,7 +192,6 @@ class BarbershopRepositoryImpl(
     }
 }
 
-//FUNGSI MAPPING HELPER
 private fun ReservationEntity.toDomainModel(): Reservation {
     return Reservation(
         id = this.id,

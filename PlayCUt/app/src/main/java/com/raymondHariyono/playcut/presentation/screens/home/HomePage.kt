@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/screens/home/HomePage.kt
 package com.raymondHariyono.playcut.presentation.screens.home
 
 import androidx.compose.foundation.background
@@ -70,7 +69,7 @@ fun HomePage(
                 ) {
                     // 1. KARTU UTAMA (MAIN ACTION CARD)
                     MainActionCard(
-                        onClick = { navController.navigate("branch") }
+                        onClick = { navController.navigate("map") }
                     )
 
                     // 2. AKSES CEPAT (QUICK ACCESS GRID)
@@ -94,9 +93,6 @@ fun HomePage(
     }
 }
 
-// ================================================================
-// KOMPONEN-KOMPONEN BARU UNTUK DESAIN MODERN
-// ================================================================
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +109,6 @@ fun MainActionCard(onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    // Latar belakang gradien menggunakan warna tema
                     brush = Brush.linearGradient(
                         colors = listOf(
                             MaterialTheme.colorScheme.primary,
@@ -129,7 +124,7 @@ fun MainActionCard(onClick: () -> Unit) {
                 Text(
                     text = "Cari & Pesan Sekarang",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimary, // Warna teks yang kontras
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold
                 )
                 Text(

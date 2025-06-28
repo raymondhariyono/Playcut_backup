@@ -6,5 +6,5 @@ data class AddBarberUiState(
     val barberContactInput: String = "",
     val successMessage: String? = null,
     val errorMessage: String? = null,
-    val isBarberAdded: Boolean = false // Untuk memicu navigasi setelah sukses
+    val isBarberAdded: Boolean = false
 )

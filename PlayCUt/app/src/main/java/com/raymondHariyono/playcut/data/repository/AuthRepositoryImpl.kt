@@ -31,45 +31,83 @@ class AuthRepositoryImpl : AuthRepository {
         }
     }
 
+    // ... (kode lain di dalam AuthRepositoryImpl)
+
     override suspend fun registerUser(credentials: RegisterCredentials): Result<Unit> {
         return try {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(credentials.email, credentials.pass).await()
             val firebaseUser = authResult.user ?: throw Exception("Gagal membuat user di Firebase Auth.")
 
-            Log.d(TAG, "Auth user berhasil dibuat dengan UID: ${firebaseUser.uid}")
-
-            val userProfile = UserProfile(
-                name = credentials.name,
+            // --- PERBAIKAN DI SINI ---
+            // Buat objek User yang lengkap dengan nama
+            val newUser = com.raymondHariyono.playcut.domain.model.User(
+                name = credentials.name, // <-- TAMBAHKAN BARIS INI
                 email = credentials.email,
-                role = "customer",
-                branchId = 0,
-                branchName = "",
-                phoneNumber = "", // Disesuaikan dengan UserProfile, diinisialisasi kosong
-                photoUrl = ""
+                phoneNumber = "" // Inisialisasi kosong, bisa diisi nanti di edit profil
             )
 
-            firestore.collection("users").document(firebaseUser.uid).set(userProfile).await()
-            Log.d(TAG, "Profil user berhasil disimpan ke Firestore.")
+            // Simpan objek newUser yang sudah lengkap ke Firestore
+            firestore.collection("users").document(firebaseUser.uid).set(newUser).await()
+            Log.d("AuthRepository", "Profil user baru berhasil disimpan ke Firestore.")
 
             Result.success(Unit)
 
         } catch (e: Exception) {
-            Log.e("FirebaseRegisterError", "Gagal mendaftarkan pengguna: ${e.message}", e)
+            Log.e("AuthRepository", "Gagal mendaftarkan pengguna: ${e.message}", e)
             val errorMessage = when (e) {
                 is FirebaseAuthUserCollisionException -> "Email yang Anda masukkan sudah terdaftar."
                 else -> "Registrasi gagal: ${e.localizedMessage}"
             }
             Result.failure(Exception(errorMessage))
         }
+
     }
 
     override suspend fun getCurrentUserProfile(): UserProfile? {
         val firebaseUser = firebaseAuth.currentUser ?: return null
+        val uid = firebaseUser.uid
+
         return try {
-            val documentSnapshot = firestore.collection("users").document(firebaseUser.uid).get().await()
-            documentSnapshot.toObject(UserProfile::class.java)
+            // Prioritas 1: Cek Admin
+            val adminDoc = firestore.collection("admins").document(uid).get().await()
+            if (adminDoc.exists()) {
+                return UserProfile.Admin(
+                    docPath = adminDoc.reference.path,
+                    name = adminDoc.getString("name") ?: "",
+                    branchId = adminDoc.getLong("branchId")?.toInt() ?: -1,
+                    branchName = adminDoc.getString("branchName") ?: ""
+                )
+            }
+
+            // Prioritas 2: Cek Barber
+            val barberDoc = firestore.collectionGroup("barbers").whereEqualTo("authUid", uid).limit(1).get().await().firstOrNull()
+            if (barberDoc != null) {    
+                return UserProfile.Barber(
+                    docPath = barberDoc.reference.path,
+                    name = barberDoc.getString("name") ?: "",
+                    contact = barberDoc.getString("contact") ?: "",
+                    imageRes = barberDoc.getString("imageRes") ?: ""
+                )
+            }
+
+            // Prioritas 3: Cek Customer secara eksplisit
+            val userDoc = firestore.collection("users").document(uid).get().await()
+            if (userDoc.exists()) {
+                return UserProfile.Customer(
+                    docPath = userDoc.reference.path,
+                    name = userDoc.getString("name") ?: "",
+                    phoneNumber = userDoc.getString("phoneNumber") ?: ""
+                )
+            }
+
+            // --- PERBAIKAN UTAMA ---
+            // Jika setelah semua pengecekan tidak ada yang cocok, kembalikan null.
+            // Ini memberitahu ViewModel bahwa profilnya benar-benar tidak ada.
+            Log.w("AuthRepository", "Pengguna dengan UID $uid berhasil diautentikasi, tetapi tidak memiliki dokumen profil di Firestore (admins, barbers, atau users).")
+            null
+
         } catch (e: Exception) {
-            Log.e(TAG, "Gagal mengambil profil dari Firestore: ${e.message}", e)
+            Log.e("AuthRepository", "Gagal mengambil profil dari Firestore: ${e.message}", e)
             null
         }
     }

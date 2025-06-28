@@ -20,18 +20,17 @@ fun AddBarberPage(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Ambil branchId dari SavedStateHandle di ViewModel (sudah dilakukan di AdminDashboardPage saat navigasi)
     val branchId: Int? = navController.currentBackStackEntry?.arguments?.getInt("branchId")
 
-    // LaunchedEffect untuk menampilkan pesan Snackbar
+
     LaunchedEffect(uiState.successMessage, uiState.errorMessage) {
         uiState.successMessage?.let {
             scope.launch { snackbarHostState.showSnackbar(it) }
-            viewModel.messageShown() // Beri tahu ViewModel bahwa pesan sudah ditampilkan
+            viewModel.messageShown()
         }
         uiState.errorMessage?.let {
             scope.launch { snackbarHostState.showSnackbar(it) }
-            viewModel.messageShown() // Beri tahu ViewModel bahwa pesan sudah ditampilkan
+            viewModel.messageShown()
         }
     }
 

@@ -18,28 +18,31 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.raymondHariyono.playcut.R
-import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginViewModel
+import com.raymondHariyono.playcut.domain.model.UserRole
 
 @Composable
 fun LoginPage(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    // 1. UI "berlangganan" pada state dari ViewModel
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    // 2. Side-effect untuk navigasi ketika login sukses
     LaunchedEffect(key1 = uiState.loginSuccess) {
         if (uiState.loginSuccess) {
-            val destination = if (uiState.userRole == "admin") "adminDashboard" else "home"
+            val destination = when (uiState.userRole) {
+                UserRole.ADMIN -> "adminDashboard"
+                UserRole.BARBER -> "barberDashboard"
+                UserRole.CUSTOMER -> "home"
+                else -> "login"
+            }
+
             navController.navigate(destination) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
             }
@@ -54,7 +57,6 @@ fun LoginPage(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Lottie Animation dan Judul Aplikasi
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.barbershop_logo))
         Box(
             contentAlignment = Alignment.TopCenter,
@@ -78,7 +80,6 @@ fun LoginPage(
         Text("Login", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. Tampilkan pesan error jika ada di dalam state
         if (uiState.error != null) {
             Text(
                 text = uiState.error!!,
@@ -87,13 +88,12 @@ fun LoginPage(
             )
         }
 
-        // 4. Hubungkan TextField dengan ViewModel
         OutlinedTextField(
             value = uiState.email,
-            onValueChange = viewModel::onEmailChange, // Memanggil fungsi ViewModel
+            onValueChange = viewModel::onEmailChange,
             label = { Text("Email") },
             leadingIcon = { Icon(Icons.Rounded.AccountCircle, contentDescription = null) },
-            isError = uiState.error != null, // Outline menjadi merah jika ada error
+            isError = uiState.error != null,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
         )
@@ -120,7 +120,6 @@ fun LoginPage(
                 focusManager.clearFocus()
                 viewModel.onLoginClick()
             },
-            // 5. Status tombol dan isinya diatur oleh state
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {

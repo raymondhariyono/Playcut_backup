@@ -93,7 +93,6 @@ fun BookingForm(
     onTimeSelect: (String) -> Unit,
     onConfirmClick: () -> Unit
 ) {
-    // Ambil barberDetails dari uiState. Jika null, form tidak akan dirender.
     val barberDetails = uiState.barberDetails ?: return
 
     val isConfirmEnabled = uiState.customerName.isNotBlank() &&
@@ -212,7 +211,6 @@ fun OtherServicesGrid(
                     } else {
                         currentSelection.add(service)
                     }
-                    // Kirim list yang sudah diperbarui kembali ke ViewModel
                     onServiceSelected(currentSelection)
                 },
                 label = { Text(service) },
@@ -224,10 +222,10 @@ fun OtherServicesGrid(
 
 @Composable
 fun TimeSelectionGrid(
-    availableTimes: List<String>, // Menerima daftar waktu
+    availableTimes: List<String>,
     selectedTime: String,
     reservations: List<Reservation>,
-    barberName: String, // Menerima nama barber untuk validasi
+    barberName: String,
     onTimeSelected: (String) -> Unit,
     isEnabled: Boolean
 ) {
@@ -242,7 +240,7 @@ fun TimeSelectionGrid(
             val isTaken = reservations.any { it.barberName == barberName && it.bookingTime == time && it.bookingDate == today }
             val isSelected = selectedTime == time
 
-            val finalIsEnabled = isEnabled && !isTaken // Tombol non-aktif jika isEnabled=false ATAU sudah dipesan
+            val finalIsEnabled = isEnabled && !isTaken
 
             val cardColors = when {
                 !finalIsEnabled -> CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))

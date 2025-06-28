@@ -24,33 +24,42 @@ class DetailBranchViewModel @Inject constructor(
     init {
         val branchId: Int = savedStateHandle.get<Int>("branchId") ?: -1
         if (branchId != -1) {
-            fetchBranchDetails(branchId)
+            fetchBranchDetailsAndServices(branchId)
         } else {
             _uiState.update { it.copy(isLoading = false, error = "ID Cabang tidak valid.") }
         }
     }
 
-    private fun fetchBranchDetails(branchId: Int) {
-        viewModelScope. launch {
+    private fun fetchBranchDetailsAndServices(branchId: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
             combine(
                 getBranchDetailsUseCase(branchId),
                 getServicesUseCase()
             ) { branchDetails, serviceList ->
-                // Update state dengan hasil gabungan
+                val filteredBranch = branchDetails?.copy(
+                    barbers = branchDetails.barbers.filter { barber ->
+                        barber.status == "active"
+                    }
+                )
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        branch = branchDetails,
+                        branch = filteredBranch,
                         services = serviceList,
-                        error = if (branchDetails == null) "Cabang tidak ditemukan" else null
+                        error = if (filteredBranch == null) "Cabang tidak ditemukan" else null
                     )
                 }
             }.catch { e ->
+                // Tangani error jika salah satu flow gagal
                 _uiState.update { it.copy(isLoading = false, error = e.localizedMessage) }
-            }.launchIn(this)
+            }.collect() // Gunakan .collect() karena kita tidak me-return dari launchIn
         }
     }
 }
+
 
 class GetServicesUseCase(private val repository: BarbershopRepository) {
     operator fun invoke() = repository.getServices()

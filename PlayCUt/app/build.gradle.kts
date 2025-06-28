@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.compose.material3)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,7 +67,6 @@ dependencies {
     implementation (libs.lottie.compose)
     implementation (libs.androidx.core.splashscreen)
     implementation(platform(libs.firebase.bom))
-
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.room.runtime)
@@ -75,4 +75,10 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.material3.window.size.class1)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.coil.compose)
+    implementation(libs.android.sdk)
+    implementation(libs.mapbox.android.sdk)
+
 }

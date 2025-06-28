@@ -3,10 +3,12 @@ package com.raymondHariyono.playcut.di
 import android.app.Application
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.raymondHariyono.playcut.data.local.AppDatabase
 import com.raymondHariyono.playcut.data.local.ReservationDao
 import com.raymondHariyono.playcut.data.repository.AuthRepositoryImpl
 import com.raymondHariyono.playcut.data.repository.BarbershopRepositoryImpl
+import com.raymondHariyono.playcut.data.seeder.AdminAccountSeeder
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
 import com.raymondHariyono.playcut.domain.usecase.GetReservationByIdUseCase
@@ -73,6 +75,10 @@ object AppModule {
     fun provideFirebaseAuth(): FirebaseAuth {
         return FirebaseAuth.getInstance()
     }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
     // --- Use Case Providers (BAGIAN PALING PENTING) ---
     // Hilt perlu tahu cara membuat SETIAP UseCase yang akan di-inject ke ViewModel.
@@ -177,5 +183,9 @@ object AppModule {
         return AddBarberUseCase(repo)
     }
 
-
+    @Provides
+    @Singleton
+    fun provideAdminAccountSeeder(auth: FirebaseAuth, db: FirebaseFirestore): AdminAccountSeeder {
+        return AdminAccountSeeder(auth, db)
+    }
 }

@@ -20,7 +20,6 @@
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             enableEdgeToEdge()
-
             setContent {
                 PlayCUtTheme {
                     AppNavigator()
@@ -28,22 +27,6 @@
             }
         }
 
-        private fun runAllSeeders() {
-            // Gunakan lifecycleScope untuk menjalankan coroutine yang aman
-            lifecycleScope.launch {
-                // Siapkan semua koneksi yang dibutuhkan
-                val firestore = FirebaseFirestore.getInstance()
-                val firebaseAuth = FirebaseAuth.getInstance()
-
-                // Buat instance dari kedua seeder
-                val dataSeeder = FirestoreSeeder(firestore)
-                val adminSeeder = AdminAccountSeeder(firebaseAuth, firestore)
-
-                // Jalankan kedua seeder secara berurutan
-                dataSeeder.seedDataIfNeeded()
-                adminSeeder.seedAdminAccounts()
-            }
-        }
     }
 
 

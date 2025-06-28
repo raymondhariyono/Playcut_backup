@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:name=".PlayCutApp"
@@ -16,6 +18,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PlayCUt"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="osmdroid.basePath"
+            android:value="osmdroid" />
+        <meta-data
+            android:name="osmdroid.tileCache"
+            android:value="tile" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -38,13 +38,10 @@ class BookingViewModel @Inject constructor(
         val barberId: Int = savedStateHandle.get<Int>("barberId") ?: -1
 
         if (reservationId != null) {
-            // Jika ada reservationId, kita masuk mode EDIT
             loadReservationForEdit(reservationId)
         } else if (barberId != -1) {
-            // Jika hanya ada barberId, kita masuk mode CREATE
             loadForCreateMode(barberId)
         } else {
-            // Jika tidak ada keduanya, tampilkan error
             _uiState.update { it.copy(isLoading = false, error = "ID tidak valid.") }
         }
     }

@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/presentation/screens/user/RegisterViewModel.kt
 package com.raymondHariyono.playcut.presentation.screens.auth.register
 
 import android.app.Application
