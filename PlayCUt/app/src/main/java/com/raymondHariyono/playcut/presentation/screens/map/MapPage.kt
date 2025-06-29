@@ -1,5 +1,6 @@
 package com.raymondHariyono.playcut.presentation.screens.map
 
+import androidx.compose.foundation.Image
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.layout.*
@@ -16,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.raymondHariyono.playcut.R
 import com.raymondHariyono.playcut.R.drawable.ic_map_marker
 import com.raymondHariyono.playcut.domain.model.Branch
@@ -101,13 +101,13 @@ fun MapPage(
 @Composable
 fun BranchInfoSheet(branch: Branch, onNavigateClick: () -> Unit) {
     Column(modifier = Modifier.padding(bottom = 32.dp)) {
-        AsyncImage(
-            model = branch.imageRes,
-            contentDescription = "Foto ${branch.name}",
+        Image(
+            painter = painterResource(id = R.drawable.placeholder_branch),
+            contentDescription = branch.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .height(160.dp)
         )
 
         Column(modifier = Modifier.padding(16.dp)) {

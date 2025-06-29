@@ -35,8 +35,8 @@ fun BranchItem(
         )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            AsyncImage(
-                model = branch.imageRes,
+            Image(
+                painter = painterResource(id = R.drawable.placeholder_branch),
                 contentDescription = branch.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

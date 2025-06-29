@@ -14,19 +14,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.raymondHariyono.playcut.domain.model.UnsplashPhoto // <-- 1. Import model yang benar
+import com.raymondHariyono.playcut.domain.model.UnsplashPhoto
 
-/**
- * Composable ini menampilkan judul seksi, tombol "Lihat Lainnya",
- * dan galeri gambar horizontal yang bisa digeser.
- */
+
 @Composable
 fun InspirationSection(
-    photos: List<UnsplashPhoto>, // <-- 2. Terima List<UnsplashPhoto>
+    photos: List<UnsplashPhoto>,
     onViewMoreClick: () -> Unit
 ) {
     Column(modifier = Modifier.padding(top = 16.dp)) {
-        // Baris untuk Judul dan Tombol "Lihat Lainnya"
         Row(
             modifier = Modifier
                 .fillMaxWidth()
