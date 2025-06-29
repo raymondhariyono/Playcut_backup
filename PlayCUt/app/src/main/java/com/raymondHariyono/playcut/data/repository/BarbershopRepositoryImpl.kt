@@ -11,9 +11,12 @@ import com.raymondHariyono.playcut.data.local.ReservationEntity
 import com.raymondHariyono.playcut.domain.model.*
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
 import com.raymondHariyono.playcut.domain.usecase.branch.BarberDetails
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
@@ -52,28 +55,38 @@ class BarbershopRepositoryImpl(
     override fun getBranchById(branchId: Int): Flow<Branch?> = flow {
         try {
             val documentId = "branch-$branchId"
-            val snapshot = firestore.collection("branches").document(documentId).get().await()
-            emit(snapshot.toObject(Branch::class.java))
+            val branchDoc = firestore.collection("branches").document(documentId).get().await()
+
+            // Langkah 1: Ubah dokumen cabang menjadi objek Branch
+            val branch = branchDoc.toObject(Branch::class.java)
+
+            if (branch != null) {
+                val barbersSnapshot = branchDoc.reference.collection("barbers").get().await()
+                val barbersList = barbersSnapshot.toObjects(Barber::class.java)
+
+                val activeBarbers = barbersList.filter { it.status == "active" }
+
+                emit(branch.copy(barbers = activeBarbers))
+            } else {
+                emit(null)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting branch by ID", e)
-            emit(null)
+            Log.e(TAG, "Error getting branch by ID with barbers", e)
+            emit(null) // Kirim null jika terjadi error
         }
     }
 
     override fun getBarberById(barberId: Int): Flow<BarberDetails?> {
         return flow {
             try {
-                // Mengambil semua dokumen cabang
                 val branchesSnapshot = firestore.collection("branches").get().await()
 
                 var foundBarber: Barber? = null
                 var foundBranch: Branch? = null
 
-                // Iterasi melalui setiap dokumen cabang
                 for (branchDoc in branchesSnapshot.documents) {
                     val branch = branchDoc.toObject(Branch::class.java)
                     if (branch != null) {
-                        // Kueri sub-koleksi 'barbers' di cabang ini untuk mencari barber berdasarkan ID
                         val barberQuerySnapshot = branchDoc.reference.collection("barbers")
                             .whereEqualTo("id", barberId)
                             .limit(1)
@@ -110,7 +123,7 @@ class BarbershopRepositoryImpl(
             Log.d(TAG, "Successfully fetched ${services.size} services.")
         } catch (e: Exception) {
             Log.e(TAG, "Error getting services", e)
-            throw e //biarkan exception dilempar ke ViewModel
+            throw e
         }
     }
 
@@ -131,7 +144,6 @@ class BarbershopRepositoryImpl(
 
     override fun getInspirations(): Flow<List<Inspiration>> = flow {
         try {
-            //masih hardcode belum memakai API
             val inspirationsData = listOf(
                 Inspiration("style1", "haircut_references"),
                 Inspiration("style2", "haircut_references")
@@ -146,13 +158,32 @@ class BarbershopRepositoryImpl(
 
 
     override fun getReservations(): Flow<List<Reservation>> {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        return reservationDao.getAllReservations().map { entityList ->
-            entityList
-                .filter { it.userId == currentUserId }
-                .map { it.toDomainModel() }
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (currentUserId == null) {
+            return flowOf(emptyList())
+        }
+
+        return callbackFlow {
+            val listenerRegistration = firestore.collection("reservations")
+                .whereEqualTo("userId", currentUserId)
+                .orderBy("dateTime", Query.Direction.DESCENDING)
+                .addSnapshotListener { snapshot, error ->
+
+                    if (error != null) {
+                        close(error)
+                        return@addSnapshotListener
+                    }
+                    if (snapshot != null) {
+                        val reservations = snapshot.toObjects(Reservation::class.java)
+                        trySend(reservations).isSuccess
+                    }
+                }
+            awaitClose { listenerRegistration.remove() }
         }
     }
+
+
 
     override fun getReservationById(reservationId: String): Flow<Reservation?> {
         return reservationDao.getReservationById(reservationId).map { entity ->
@@ -206,28 +237,31 @@ class BarbershopRepositoryImpl(
         }
     }
 
-
     override fun getReservationsByBranch(branchName: String): Flow<List<Reservation>> {
-        // Mengembalikan Flow yang langsung "mendengarkan" perubahan dari Firestore
-        return flow {
+        return callbackFlow {
             if (branchName.isBlank()) {
-                emit(emptyList()) // Jika nama cabang kosong, langsung kirim list kosong
-                return@flow
+                trySend(emptyList()).isSuccess
+                close()
+                return@callbackFlow
             }
 
-            try {
-                val snapshot = firestore.collection("reservations")
-                    .whereEqualTo("branchName", branchName)
-                    .orderBy("dateTime", Query.Direction.DESCENDING)
-                    .get()
-                    .await()
+            val listenerRegistration = firestore.collection("reservations")
+                .whereEqualTo("branchName", branchName)
+                .orderBy("dateTime", Query.Direction.DESCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.w(TAG, "Listen error in getReservationsByBranch", error)
+                        close(error)
+                        return@addSnapshotListener
+                    }
 
-                val reservations = snapshot.toObjects(Reservation::class.java)
-                emit(reservations) // Kirim hasilnya
-            } catch (e: Exception) {
-                Log.e(TAG, "Gagal mengambil reservasi untuk cabang $branchName", e)
-                throw e
-            }
+                    if (snapshot != null) {
+                        val reservations = snapshot.toObjects(Reservation::class.java)
+                        trySend(reservations).isSuccess
+                    }
+                }
+
+            awaitClose { listenerRegistration.remove() }
         }
     }
 

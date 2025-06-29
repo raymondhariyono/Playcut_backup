@@ -25,7 +25,7 @@ class AuthRepositoryImpl : AuthRepository {
             Result.success(Unit)
         } catch (e: Exception) {
             val errorMessage = when (e) {
-                is FirebaseAuthInvalidCredentialsException -> "Password yang Anda masukkan salah."
+                is FirebaseAuthInvalidCredentialsException -> "Password atau email yang Anda masukkan salah."
                 is FirebaseAuthInvalidUserException -> "Email tidak terdaftar."
                 else -> "Login gagal: ${e.localizedMessage}"
             }
@@ -39,15 +39,12 @@ class AuthRepositoryImpl : AuthRepository {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(credentials.email, credentials.pass).await()
             val firebaseUser = authResult.user ?: throw Exception("Gagal membuat user di Firebase Auth.")
 
-            // --- PERBAIKAN DI SINI ---
-            // Buat objek User yang lengkap dengan nama
             val newUser = com.raymondHariyono.playcut.domain.model.User(
-                name = credentials.name, // <-- TAMBAHKAN BARIS INI
+                name = credentials.name,
                 email = credentials.email,
-                phoneNumber = "" // Inisialisasi kosong, bisa diisi nanti di edit profil
+                phoneNumber = ""
             )
 
-            // Simpan objek newUser yang sudah lengkap ke Firestore
             firestore.collection("users").document(firebaseUser.uid).set(newUser).await()
             Log.d("AuthRepository", "Profil user baru berhasil disimpan ke Firestore.")
 
@@ -118,4 +115,5 @@ class AuthRepositoryImpl : AuthRepository {
             Result.failure(e)
         }
     }
+
 }

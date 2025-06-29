@@ -54,7 +54,7 @@ class ManageBarberAccountsViewModel @Inject constructor(
                             }
                         }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = "Profil admin tidak ditemukan atau peran tidak valid.") }
+                    _uiState.update { it.copy(isLoading = false, error = "data tidak valid.") }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = "Gagal memuat data: ${e.localizedMessage}") }
@@ -62,11 +62,7 @@ class ManageBarberAccountsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Memulai proses pembuatan akun Firebase Auth dan menautkannya ke profil barber.
-     *
-     * @param barber Profil barber yang akan dibuatkan akun.
-     */
+
     fun onCreateBarberAccountClick(barber: Barber) {
         viewModelScope.launch {
             _uiState.update { it.copy(isRegisteringAccount = true, snackbarMessage = null) }

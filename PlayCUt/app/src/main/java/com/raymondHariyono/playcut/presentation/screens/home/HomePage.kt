@@ -19,14 +19,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.raymondHariyono.playcut.R
 import com.raymondHariyono.playcut.presentation.components.ButtonNavBar
 import com.raymondHariyono.playcut.presentation.components.CarouselImage
-import com.raymondHariyono.playcut.presentation.components.TopBar
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.raymondHariyono.playcut.presentation.components.InspirationSection
+import com.raymondHariyono.playcut.presentation.components.TopBar
 
 @Composable
 fun HomePage(
@@ -61,22 +63,22 @@ fun HomePage(
                         .verticalScroll(rememberScrollState())
                         .padding(bottom = 80.dp)
                 ) {
-                    // 1. KARTU UTAMA (MAIN ACTION CARD)
+                    // 1. KARTU UTAMA
                     MainActionCard(
                         onClick = { navController.navigate("map") }
                     )
 
-                    // 2. AKSES CEPAT (QUICK ACCESS GRID)
+                    // 2. AKSES CEPAT
                     QuickAccessGrid(navController = navController)
 
                     // 3. PROMO CAROUSEL
-                    SectionTitle(title = "Promo & Penawaran Spesial")
+                    SectionTitle(title = stringResource(R.string.section_promo_title))
                     CarouselImage(
                         navController = navController,
                         imageList = uiState.promotions.map { it.imageRes }
                     )
 
-                    // 4. INSPIRASI GAYA (MENGGUNAKAN KOMPONEN LAMA)
+                    // 4. INSPIRASI
                     InspirationSection(
                         photos = uiState.inspirations,
                         onViewMoreClick = { navController.navigate("inspiration") }
@@ -86,7 +88,6 @@ fun HomePage(
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,13 +117,13 @@ fun MainActionCard(onClick: () -> Unit) {
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
                 Text(
-                    text = "Cari & Pesan Sekarang",
+                    text = stringResource(R.string.main_card_title),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Temukan cabang terdekat dan barber favoritmu.",
+                    text = stringResource(R.string.main_card_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                 )
@@ -147,19 +148,19 @@ fun QuickAccessGrid(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             QuickAccessItem(
-                title = "Cari Cabang",
+                title = stringResource(R.string.quick_access_search),
                 icon = Icons.Outlined.Search,
                 onClick = { navController.navigate("branch") }
             )
             QuickAccessItem(
-                title = "Reservasi",
+                title = stringResource(R.string.quick_access_reservation),
                 icon = Icons.Outlined.DateRange,
                 onClick = { navController.navigate("yourReservation") }
             )
             QuickAccessItem(
-                title = "Profile",
+                title = stringResource(R.string.quick_access_profile),
                 icon = Icons.Outlined.Person,
-                onClick = { /* TODO: Navigasi ke halaman bantuan */ }
+                onClick = { /* TODO: Navigasi ke halaman profil */ }
             )
         }
     }

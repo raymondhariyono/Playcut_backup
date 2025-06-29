@@ -1,12 +1,21 @@
 package com.raymondHariyono.playcut.presentation.screens.barber.dashboard
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
+import com.raymondHariyono.playcut.domain.model.Reservation
+import com.raymondHariyono.playcut.domain.model.UserProfile
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 @HiltViewModel
 class BarberDashboardViewmodel @Inject constructor(
@@ -14,6 +23,16 @@ class BarberDashboardViewmodel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(BarberDashboardUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private var reservationsListener: ListenerRegistration? = null
+    private val TAG = "BarberDashboardVM"
+
+    init {
+        loadBarberProfileAndReservations()
+    }
 
     private fun loadBarberProfileAndReservations() {
         viewModelScope.launch {
@@ -30,38 +49,35 @@ class BarberDashboardViewmodel @Inject constructor(
 
                 if (profile is UserProfile.Barber) {
                     _uiState.update { it.copy(barberProfile = profile) }
-                    // Akses properti 'name' dan 'authUid' langsung dari objek 'profile'
-                    Log.d(TAG, "Profil Barber dimuat: ${profile.name}, AuthUID: ${profile.authUid}") // INI SEHARUSNYA TIDAK ERROR LAGI
 
-                    // Akses properti 'id' dan 'authUid' langsung dari objek 'profile'
-                    profile.id.let { barberIdInteger -> // Menggunakan profile.id (integer)
-                        if (barberIdInteger != 0) {
-                            reservationsListener?.remove()
+                    Log.d(TAG, "Profil Barber dimuat: ${profile.name}, AuthUID: ${profile.authUid}")
 
-                            reservationsListener = firestore.collection("reservations")
-                                .whereEqualTo("barberId", barberIdInteger) // Menggunakan barberId (integer)
-                                .orderBy("bookingDate", Query.Direction.DESCENDING)
-                                .orderBy("bookingTime", Query.Direction.DESCENDING)
-                                .addSnapshotListener { snapshot, e ->
-                                    if (e != null) {
-                                        Log.e(TAG, "Error listening for reservations: ${e.message}", e)
-                                        _uiState.update { it.copy(isLoading = false, error = "Gagal memuat reservasi: ${e.localizedMessage}") }
-                                        return@addSnapshotListener
-                                    }
+                    if (profile.id != 0) {
+                        reservationsListener?.remove()
 
-                                    if (snapshot != null) {
-                                        val reservations = snapshot.toObjects(Reservation::class.java)
-                                        _uiState.update { it.copy(isLoading = false, reservations = reservations, error = null) }
-                                        Log.d(TAG, "Memuat ${reservations.size} reservasi untuk barber.")
-                                    } else {
-                                        _uiState.update { it.copy(isLoading = false, reservations = emptyList(), error = null) }
-                                        Log.d(TAG, "Snapshot reservasi kosong.")
-                                    }
+                        reservationsListener = firestore.collection("reservations")
+                            .whereEqualTo("barberAuthUid", profile.authUid)
+                            .orderBy("bookingDate", Query.Direction.DESCENDING)
+                            .orderBy("bookingTime", Query.Direction.DESCENDING)
+                            .addSnapshotListener { snapshot, e ->
+                                if (e != null) {
+                                    Log.e(TAG, "Error listening for reservations: ${e.message}", e)
+                                    _uiState.update { it.copy(isLoading = false, error = "Gagal memuat reservasi: ${e.localizedMessage}") }
+                                    return@addSnapshotListener
                                 }
-                        } else {
-                            _uiState.update { it.copy(isLoading = false, error = "Profil barber tidak memiliki ID valid.") }
-                            Log.e(TAG, "Profil barber tidak memiliki ID valid: $barberIdInteger")
-                        }
+
+                                if (snapshot != null) {
+                                    val reservations = snapshot.toObjects(Reservation::class.java)
+                                    _uiState.update { it.copy(isLoading = false, reservations = reservations, error = null) }
+                                    Log.d(TAG, "Memuat ${reservations.size} reservasi untuk barber.")
+                                } else {
+                                    _uiState.update { it.copy(isLoading = false, reservations = emptyList(), error = null) }
+                                    Log.d(TAG, "Snapshot reservasi kosong.")
+                                }
+                            }
+                    } else {
+                        _uiState.update { it.copy(isLoading = false, error = "Profil barber tidak memiliki ID valid.") }
+                        Log.e(TAG, "Profil barber tidak memiliki ID valid: ${profile.id}")
                     }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = "Profil pengguna bukan barber.") }
@@ -72,5 +88,10 @@ class BarberDashboardViewmodel @Inject constructor(
                 Log.e(TAG, "Kesalahan umum saat memuat data barber: ${e.message}", e)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        reservationsListener?.remove()
     }
 }

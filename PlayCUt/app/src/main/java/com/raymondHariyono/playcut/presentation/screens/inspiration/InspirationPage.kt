@@ -16,7 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.raymondHariyono.playcut.domain.model.UnsplashPhoto // <-- 1. Import model yang benar
+import com.raymondHariyono.playcut.domain.model.UnsplashPhoto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

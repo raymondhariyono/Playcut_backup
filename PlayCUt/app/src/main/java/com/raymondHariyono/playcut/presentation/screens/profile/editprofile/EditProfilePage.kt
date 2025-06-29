@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -20,6 +21,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.raymondHariyono.playcut.R
 import com.raymondHariyono.playcut.domain.model.UserProfile
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +31,24 @@ fun EditProfilePage(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Efek untuk menangani navigasi setelah logout
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // LaunchedEffect akan "mendengarkan" perubahan pada pesan sukses atau error
+    LaunchedEffect(uiState.successMessage, uiState.error) {
+        uiState.successMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.messageConsumed()
+            }
+        }
+        uiState.error?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar("Error: $message")
+                viewModel.messageConsumed()
+            }
+        }
+    }
     LaunchedEffect(uiState.navigateToLogin) {
         if (uiState.navigateToLogin) {
             navController.navigate("login") {
@@ -41,7 +60,17 @@ fun EditProfilePage(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Edit Profil") }) }
+        // --- KODE BARU UNTUK MENAMPILKAN PESAN ---
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Edit Profil") },
+                navigationIcon = {
+                    // Tambahkan tombol kembali jika diperlukan
+                    // IconButton(onClick = { navController.popBackStack() }) { ... }
+                }
+            )
+        }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (uiState.isLoading) {
@@ -53,11 +82,9 @@ fun EditProfilePage(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 'when' untuk menampilkan field profil yang sesuai
                     when (val profile = uiState.userProfile) {
                         is UserProfile.Barber -> BarberProfileFields(
                             profile = profile,
-                            // Kirim isUploading sebagai parameter biasa
                             isUploading = uiState.isUploading,
                             onUpdate = { viewModel.updateProfile(it) },
                             onImageChange = { viewModel.updateBarberProfilePicture(it) }
@@ -89,11 +116,11 @@ fun EditProfilePage(
     }
 }
 
-// Composable terpisah untuk kerapian kode
+// Tidak ada perubahan pada Composable di bawah ini
 @Composable
 private fun BarberProfileFields(
     profile: UserProfile.Barber,
-    isUploading: Boolean, // <-- Terima sebagai parameter
+    isUploading: Boolean,
     onUpdate: (UserProfile.Barber) -> Unit,
     onImageChange: (Uri) -> Unit
 ) {
@@ -140,7 +167,6 @@ private fun CustomerProfileFields(
     var name by remember { mutableStateOf(profile.name) }
     var phoneNumber by remember { mutableStateOf(profile.phoneNumber) }
 
-    // Placeholder untuk foto profil customer jika ada
     Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
         Icon(painterResource(id = R.drawable.ic_default_profile), contentDescription = "Profile", modifier = Modifier.fillMaxSize())
     }
@@ -175,7 +201,6 @@ private fun AdminProfileFields(
 ) {
     var name by remember { mutableStateOf(profile.name) }
 
-    // Placeholder untuk foto profil admin
     Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
         Icon(painterResource(id = R.drawable.ic_default_profile), contentDescription = "Profile", modifier = Modifier.fillMaxSize())
     }

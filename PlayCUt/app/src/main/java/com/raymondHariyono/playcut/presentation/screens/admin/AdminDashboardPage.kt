@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -31,26 +31,31 @@ fun AdminDashboardPage(
     val reservationToDeleteId by viewModel.reservationToDeleteId.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    // Ambil profil admin dari state dengan aman
     val adminProfile = uiState.adminProfile as? UserProfile.Admin
 
+    // Efek untuk menangani pesan snackbar
+    LaunchedEffect(uiState.snackbarMessage, uiState.errorMessage) {
+        uiState.snackbarMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.snackbarMessageShown()
+            }
+        }
+        uiState.errorMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.snackbarMessageShown()
+            }
+        }
+    }
+
+    // Efek untuk menangani navigasi setelah logout
     LaunchedEffect(uiState.isLoggedOut) {
         if (uiState.isLoggedOut) {
             navController.navigate("login") {
                 popUpTo(navController.graph.id) { inclusive = true }
             }
-        }
-    }
-
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let { message ->
-            scope.launch { snackbarHostState.showSnackbar(message) }
-            viewModel.snackbarMessageShown()
-        }
-    }
-
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { message ->
-            scope.launch { snackbarHostState.showSnackbar("Error: $message") }
         }
     }
 
@@ -61,7 +66,7 @@ fun AdminDashboardPage(
                 title = { Text("Cabang ${adminProfile?.branchName ?: "Memuat..."}") },
                 actions = {
                     IconButton(onClick = viewModel::onLogoutClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ExitToApp, "Logout")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, "Logout")
                     }
                 }
             )
@@ -71,7 +76,8 @@ fun AdminDashboardPage(
                 onClick = {
                     val branchId = adminProfile?.branchId
                     if (branchId != null && branchId != -1) {
-                        navController.navigate("detailBranch/$branchId")
+                        // Arahkan ke halaman tambah reservasi walk-in
+                        navController.navigate("add_reservation?branchId=$branchId")
                     } else {
                         scope.launch { snackbarHostState.showSnackbar("Profil admin tidak valid.") }
                     }
@@ -84,60 +90,46 @@ fun AdminDashboardPage(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(horizontal = 16.dp)) {
             Spacer(Modifier.height(16.dp))
+
+            // Tombol-tombol aksi admin
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Button(onClick = {
-                    val branchId = adminProfile?.branchId
-                    if (branchId != null && branchId != -1) {
-                        navController.navigate("addBarber/$branchId")
-                    } else {
-                        scope.launch { snackbarHostState.showSnackbar("ID Cabang tidak ditemukan.") }
+                AdminActionButton("Tambah Barber") {
+                    adminProfile?.branchId?.takeIf { it != -1 }?.let {
+                        navController.navigate("addBarber/$it")
                     }
-                }) {
-                    Icon(Icons.Outlined.Person, null, Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Tambah Barber")
                 }
-
-                Button(onClick = {
-                    val branchId = adminProfile?.branchId
-                    if (branchId != null && branchId != -1) {
-                        navController.navigate("manageBarbers/$branchId")
-                    } else {
-                        scope.launch { snackbarHostState.showSnackbar("ID Cabang tidak ditemukan.") }
+                AdminActionButton("Kelola Barber") {
+                    adminProfile?.branchId?.takeIf { it != -1 }?.let {
+                        navController.navigate("manageBarbers/$it")
                     }
-                }) {
-                    Icon(Icons.Default.Add, null, Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Kelola Barber")
                 }
+            }
+            Spacer(Modifier.height(8.dp))
+            AdminActionButton("Kelola Akun Barber") {
+                adminProfile?.branchId?.takeIf { it != -1 }?.let {
+                    navController.navigate("manageBarberAccounts/$it")
+                }
+            }
 
-            }
-            Button(onClick = {
-                val branchId = adminProfile?.branchId
-                if (branchId != null && branchId != -1) {
-                    navController.navigate("manageBarberAccounts/$branchId")
-                } else {
-                    scope.launch { snackbarHostState.showSnackbar("ID Cabang tidak ditemukan.") }
-                }
-            }) {
-                Icon(Icons.Outlined.AccountCircle, null, Modifier.size(ButtonDefaults.IconSize)) // Contoh ikon
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Kelola Akun")
-            }
             Spacer(Modifier.height(24.dp))
             Text("Daftar Reservasi di Cabang Anda:", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
 
+            // Tampilan daftar reservasi
             if (uiState.isLoading) {
-                Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else if (uiState.reservations.isEmpty()) {
-                Text("Belum ada reservasi untuk hari ini.")
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    Text("Belum ada reservasi untuk hari ini.")
+                }
             } else {
                 LazyColumn(Modifier.fillMaxSize()) {
-                    items(uiState.reservations) { reservation ->
+                    items(uiState.reservations, key = { it.id }) { reservation ->
                         ReservationItem(
                             reservation = reservation,
                             onCancelClick = viewModel::onCancelReservationClick,
@@ -148,24 +140,45 @@ fun AdminDashboardPage(
                     }
                 }
             }
-
-            if (reservationToDeleteId != null) {
-                AlertDialog(
-                    onDismissRequest = viewModel::dismissDeleteConfirmation,
-                    icon = { Icon(Icons.Outlined.Warning, "Warning") },
-                    title = { Text("Konfirmasi Pembatalan") },
-                    text = { Text("Apakah Anda yakin ingin membatalkan reservasi ini?") },
-                    confirmButton = {
-                        Button(
-                            onClick = viewModel::onConfirmDeletion,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) { Text("Ya, Batalkan") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = viewModel::dismissDeleteConfirmation) { Text("Tidak") }
-                    }
-                )
-            }
         }
+    }
+
+    // Dialog konfirmasi penghapusan
+    if (reservationToDeleteId != null) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDeleteConfirmation,
+            icon = { Icon(Icons.Outlined.Warning, "Warning") },
+            title = { Text("Konfirmasi Pembatalan") },
+            text = { Text("Apakah Anda yakin ingin membatalkan reservasi ini?") },
+            confirmButton = {
+                Button(
+                    onClick = viewModel::onConfirmDeletion,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("Ya, Batalkan") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDeleteConfirmation) { Text("Tidak") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun RowScope.AdminActionButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
+private fun AdminActionButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+    ) {
+        Text(text)
     }
 }

@@ -11,13 +11,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.raymondHariyono.playcut.R
 import com.raymondHariyono.playcut.presentation.components.ButtonNavBar
 import com.raymondHariyono.playcut.presentation.components.ReservationItem
-
 
 @Composable
 fun YourReservationPage(
@@ -28,8 +29,9 @@ fun YourReservationPage(
 
     Scaffold(
         topBar = {
+            // Judul halaman reservasi
             Text(
-                text = "Reservasi Anda",
+                text = stringResource(R.string.your_reservation_title),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(16.dp)
             )
@@ -59,7 +61,6 @@ fun YourReservationPage(
                             },
                             onEditClick = { reservationId ->
                                 navController.navigate("booking?reservationId=$reservationId")
-
                             }
                         )
                     }
@@ -84,46 +85,53 @@ fun EmptyState(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Teks saat tidak ada reservasi
         Text(
-            text = "Anda Belum Punya Reservasi",
+            text = stringResource(R.string.no_reservations_title),
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Ayo cari cabang terdekat dan buat reservasi pertamamu!",
+            text = stringResource(R.string.no_reservations_message),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = { navController.navigate("branch") }) {
-            Text("Cari Cabang Sekarang")
+            Text(stringResource(R.string.find_branch_now))
         }
     }
 }
 
-    @Composable
-    fun ConfirmationDialog(
-        onDismiss: () -> Unit,
-        onConfirm: () -> Unit
-    ) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            icon = { Icon(Icons.Outlined.Warning, contentDescription = "Warning") },
-            title = { Text(text = "Konfirmasi Pembatalan") },
-            text = { Text("Apakah Anda yakin ingin membatalkan reservasi ini? Aksi ini tidak dapat dikembalikan.") },
-            confirmButton = {
-                Button(
-                    onClick = onConfirm,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Ya, Batalkan")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Tidak")
-                }
+@Composable
+fun ConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Outlined.Warning, contentDescription = stringResource(R.string.warning_icon_desc)) },
+
+        // Judul dan isi dialog konfirmasi
+        title = { Text(text = stringResource(R.string.cancel_confirmation_title)) },
+        text = { Text(stringResource(R.string.cancel_confirmation_message)) },
+
+        // Tombol konfirmasi
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text(stringResource(R.string.confirm_cancel))
             }
-        )
-    }
+        },
+
+        // Tombol batal
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.dismiss_cancel))
+            }
+        }
+    )
+}

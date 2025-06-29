@@ -31,8 +31,8 @@ import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchDetailsUseCase
 import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchesUseCase
 import com.raymondHariyono.playcut.domain.usecase.home.GetHomePageDataUseCase
 import com.raymondHariyono.playcut.domain.usecase.home.GetInspirationPhotosUseCase
+import com.raymondHariyono.playcut.domain.usecase.reservation.GetServicesUseCase
 import com.raymondHariyono.playcut.domain.usecase.reservation.UpdateReservationUseCase
-import com.raymondHariyono.playcut.presentation.screens.branch.detail.GetServicesUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

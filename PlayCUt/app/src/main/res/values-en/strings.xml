@@ -1,40 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="book_with">Book with %1$s</string>
-    <string name="select_service">Select Service</string>
-    <string name="select_additional_service">Select Additional Service</string>
-    <string name="select_available_time">Select Available Time</string>
-    <string name="confirm_booking">Confirm Booking</string>
-    <string name="please_select_all">Please select service, additional service, and time</string>
-    <string name="booking_confirmed">Booking confirmed with %1$s at %2$s</string>
-    <string name="service">Service</string>
-    <string name="services">Services</string>
-    <string name="barber_di_cabang_ini">Barbers at This Branch</string>
-    <string name="paket_harga">Packages / Prices</string>
-    <string name="reguler">REGULAR</string>
-    <string name="other_service">Other Services</string>
-    <string name="branch_image_desc">Branch Image</string>
-    <string name="login_title">Login</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="login_button">Login</string>
-    <string name="no_account">Dont have an account?</string>
-    <string name="register">Register</string>
-    <string name="profile_name">Raymond Hariyono</string>
-    <string name="profile_email">raymond@example.com</string>
-    <string name="settings">Settings</string>
+    <!-- Reservation Page -->
+    <string name="your_reservation_title">Your Reservations</string>
+    <string name="no_reservations_title">You Have No Reservations</string>
+    <string name="no_reservations_message">Find a nearby branch and make your first reservation now!</string>
+    <string name="find_branch_now">Find Branch Now</string>
+
+    <!-- Confirmation Dialog -->
+    <string name="cancel_confirmation_title">Cancel Confirmation</string>
+    <string name="cancel_confirmation_message">Are you sure you want to cancel this reservation? This action cannot be undone.</string>
+    <string name="confirm_cancel">Yes, Cancel</string>
+    <string name="dismiss_cancel">No</string>
+
+    <!-- Icon Description -->
+    <string name="warning_icon_desc">Warning</string>
+
+    <string name="edit_profile">Edit Profile</string>
     <string name="logout">Log Out</string>
-    <string name="app_name">PlayCut</string>
-    <string name="register_button">Register</string>
-    <string name="have_account">Already have an account?</string>
-    <string name="email_hint">Email</string>
-    <string name="name_hint">Name</string>
-    <string name="username_hint">Username</string>
-    <string name="password_hint">Password</string>
-    <string name="search_branch">Search Branch</string>
-    <string name="branch_location">Branch Location</string>
-    <string name="book_now">Book Now</string>
-    <string name="no_reservation">No reservation yet</string>
-    <string name="barber_name">Barber Name</string>
-    <string name="available_times">Available Times</string>
+    <string name="logout_icon_desc">Logout Icon</string>
+    <string name="profile_photo_desc">Profile Photo</string>
+    <string name="unknown_user">User</string>
+    <string name="contact_label">Contact</string>
+    <string name="phone_label">Phone</string>
+    <string name="role_label">Role</string>
+    <string name="admin_role">Administrator</string>
+    <string name="unknown_profile_detail">Unable to display profile details.</string>
+    <string name="error_message">Error: %1$s</string>
+    <string name="edit_icon_desc">Edit</string>
+
+    <string name="inspiration_title">Hair Style Inspirations</string>
+    <string name="loading_error">Failed to load: %1$s</string>
+    <string name="photo_by">Photo by %1$s</string>
+
+    <!-- Home Page -->
+    <string name="main_card_title">Find &amp; Book Now</string>
+    <string name="main_card_subtitle">Discover nearby branches and your favorite barber.</string>
+    <string name="quick_access_search">Find Branch</string>
+    <string name="quick_access_reservation">Reservation</string>
+    <string name="quick_access_profile">Profile</string>
+    <string name="section_promo_title">Promotions &amp; Special Offers</string>
 </resources>

@@ -101,10 +101,7 @@ class BookingViewModel @Inject constructor(
 
             )
 
-
-
             if (reservationToUpdate != null) {
-
                 val result = updateReservationUseCase(reservationToUpdate)
 
                 _uiState.update { it.copy(updateResult = result) }
@@ -153,9 +150,7 @@ class BookingViewModel @Inject constructor(
             val bookingDateTime = sdf.parse("$dateStr $timeStr") ?: return false
 
             val oneHourInMillis = 3600000L
-
             (bookingDateTime.time - System.currentTimeMillis()) > oneHourInMillis
-
         } catch (e: Exception) { false }
     }
 }

@@ -60,8 +60,6 @@ class YourReservationViewModel @Inject constructor(
                 deleteReservationUseCase(idToDelete)
                     .onSuccess { Log.d("ReservationVM", "Reservasi ID $idToDelete berhasil dihapus.") }
                     .onFailure { error -> Log.e("ReservationVM", "Gagal menghapus reservasi", error) }
-
-                // Setelah selesai, sembunyikan dialog
                 onDismissDialog()
             }
         }

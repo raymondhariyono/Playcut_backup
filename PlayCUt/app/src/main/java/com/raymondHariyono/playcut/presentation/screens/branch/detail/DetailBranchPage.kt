@@ -19,11 +19,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.raymondHariyono.playcut.R
 import com.raymondHariyono.playcut.presentation.components.BranchBarberList
 import com.raymondHariyono.playcut.presentation.components.ButtonNavBar
+import com.raymondHariyono.playcut.presentation.components.ReservationItem
 
 @Composable
 fun DetailBranchPage(
@@ -58,7 +58,10 @@ fun DetailBranchPage(
                                 painter = painterResource(id = imageResId),
                                 contentDescription = branch.name,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxWidth().height(220.dp).padding(16.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .padding(16.dp)
                                     .clip(RoundedCornerShape(16.dp))
                             )
                             Text(
@@ -86,6 +89,7 @@ fun DetailBranchPage(
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                         }
+
 
                         item { SectionTitle("Layanan & Harga") }
                         items(uiState.services) { service -> ServiceItem(service = service) }
@@ -116,7 +120,11 @@ private fun ServiceItem(service: com.raymondHariyono.playcut.domain.model.Servic
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = service.name, style = MaterialTheme.typography.bodyLarge)
-        Text(text = service.price, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = service.price,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold
+        )
     }
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }

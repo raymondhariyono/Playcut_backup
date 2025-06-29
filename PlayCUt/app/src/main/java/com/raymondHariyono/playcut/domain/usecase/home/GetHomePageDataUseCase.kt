@@ -25,16 +25,11 @@ class GetHomePageDataUseCase @Inject constructor(
     operator fun invoke(): Flow<HomePageData> = flow {
         val profile = authRepository.getCurrentUserProfile()
 
-        // --- Perbaikan di sini ---
         val photos: List<UnsplashPhoto> = try {
-            // Panggil metode execute() secara eksplisit
             getInspirationPhotosUseCase.execute()
         } catch (e: Exception) {
-            // Log error atau tangani sesuai kebutuhan
-            // Misalnya, emit daftar kosong jika terjadi kesalahan
             emptyList()
         }
-        // --- Akhir Perbaikan ---
 
         val userName = when (profile) {
             is UserProfile.Admin -> profile.name

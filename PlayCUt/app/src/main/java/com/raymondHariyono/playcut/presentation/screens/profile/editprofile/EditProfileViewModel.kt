@@ -8,7 +8,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.raymondHariyono.playcut.domain.model.UserProfile
-import com.raymondHariyono.playcut.domain.usecase.auth.LogoutUseCase // Pastikan path LogoutUseCase benar
+import com.raymondHariyono.playcut.domain.usecase.auth.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,14 +38,14 @@ class EditProfileViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val uid = auth.currentUser?.uid
 
-            // Jika tidak ada pengguna yang login, hentikan proses.
+
             if (uid == null) {
                 _uiState.update { it.copy(isLoading = false, error = "Sesi tidak valid. Silakan login kembali.") }
                 return@launch
             }
 
             try {
-                // Prioritas 1: Cek apakah pengguna adalah Admin.
+
                 val adminDoc = db.collection("admins").document(uid).get().await()
                 if (adminDoc.exists()) {
                     val profile = UserProfile.Admin(
@@ -58,10 +58,11 @@ class EditProfileViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Prioritas 2: Cek apakah pengguna adalah Barber.
                 val barberDoc = db.collectionGroup("barbers").whereEqualTo("authUid", uid).limit(1).get().await().firstOrNull()
                 if (barberDoc != null) {
                     val profile = UserProfile.Barber(
+                        id = barberDoc.getLong("id")?.toInt() ?: 0,
+                        authUid = barberDoc.getString("authUid") ?: uid,
                         docPath = barberDoc.reference.path,
                         name = barberDoc.getString("name") ?: "Barber",
                         contact = barberDoc.getString("contact") ?: "",
@@ -71,8 +72,6 @@ class EditProfileViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Prioritas 3: Asumsi pengguna adalah Customer.
-                // Ganti "users" dengan nama koleksi pelanggan Anda jika berbeda.
                 val userDoc = db.collection("users").document(uid).get().await()
                 if (userDoc.exists()) {
                     val profile = UserProfile.Customer(
@@ -84,7 +83,7 @@ class EditProfileViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Jika tidak ditemukan di mana pun.
+
                 _uiState.update { it.copy(isLoading = false, error = "Profil pengguna tidak dapat ditemukan.") }
 
             } catch (e: Exception) {
@@ -149,5 +148,9 @@ class EditProfileViewModel @Inject constructor(
 
     fun onNavigationComplete() {
         _uiState.update { it.copy(navigateToLogin = false) }
+    }
+
+    fun messageConsumed() {
+        _uiState.update { it.copy(successMessage = null, error = null) }
     }
 }

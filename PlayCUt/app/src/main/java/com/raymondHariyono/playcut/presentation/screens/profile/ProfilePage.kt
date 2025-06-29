@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,9 +53,8 @@ fun ProfilePage(
         ) {
             when {
                 uiState.isLoading -> CircularProgressIndicator()
-                uiState.error != null -> Text(text = "Error: ${uiState.error}")
+                uiState.error != null -> Text(text = stringResource(R.string.error_message, uiState.error ?: ""))
                 else -> {
-                    // Gunakan 'when' untuk memilih konten yang akan ditampilkan
                     uiState.userProfile?.let {
                         ProfileContent(
                             navController = navController,
@@ -80,30 +80,24 @@ fun ProfileContent(
     ) {
         Spacer(modifier = Modifier.height(32.dp))
 
+        val defaultUserName = stringResource(R.string.unknown_user)
         when (profile) {
-            is UserProfile.Admin -> {
-                ProfileHeader(name = profile.name, imageUrl = null)
-            }
-            is UserProfile.Barber -> {
-                ProfileHeader(name = profile.name, imageUrl = profile.imageRes)
-            }
-            is UserProfile.Customer -> {
-                ProfileHeader(name = profile.name, imageUrl = null)
-            }
-            is UserProfile.Unknown -> {
-                ProfileHeader(name = "Pengguna", imageUrl = null)
-            }
+            is UserProfile.Admin -> ProfileHeader(profile.name, null)
+            is UserProfile.Barber -> ProfileHeader(profile.name, profile.imageRes)
+            is UserProfile.Customer -> ProfileHeader(profile.name, null)
+            is UserProfile.Unknown -> ProfileHeader(defaultUserName, null)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Tombol edit profil
         Button(
             onClick = { navController.navigate("editProfile") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Edit Profil")
+            Text(text = stringResource(R.string.edit_profile))
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Icon(Icons.AutoMirrored.Outlined.ArrowForward , contentDescription = "Edit")
+            Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = stringResource(R.string.edit_icon_desc))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -112,17 +106,28 @@ fun ProfileContent(
             Column(modifier = Modifier.padding(16.dp)) {
                 when (profile) {
                     is UserProfile.Barber -> {
-                        ProfileInfoRow(icon = Icons.Outlined.Phone, label = "Kontak", value = profile.contact)
+                        ProfileInfoRow(
+                            icon = Icons.Outlined.Phone,
+                            label = stringResource(R.string.contact_label),
+                            value = profile.contact
+                        )
                     }
                     is UserProfile.Customer -> {
-                        ProfileInfoRow(icon = Icons.Outlined.Phone, label = "No. HP", value = profile.phoneNumber)
-                        // Anda bisa tambahkan info lain jika ada
+                        ProfileInfoRow(
+                            icon = Icons.Outlined.Phone,
+                            label = stringResource(R.string.phone_label),
+                            value = profile.phoneNumber
+                        )
                     }
                     is UserProfile.Admin -> {
-                        ProfileInfoRow(icon = Icons.Outlined.Person, label = "Peran", value = "Administrator")
+                        ProfileInfoRow(
+                            icon = Icons.Outlined.Person,
+                            label = stringResource(R.string.role_label),
+                            value = stringResource(R.string.admin_role)
+                        )
                     }
                     is UserProfile.Unknown -> {
-                        Text("Tidak dapat menampilkan detail profil.")
+                        Text(text = stringResource(R.string.unknown_profile_detail))
                     }
                 }
             }
@@ -130,15 +135,19 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Tombol logout
         OutlinedButton(
             onClick = onLogoutClick,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
         ) {
-            Icon(Icons.AutoMirrored.Filled.ExitToApp , contentDescription = "Logout Icon")
+            Icon(
+                Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = stringResource(R.string.logout_icon_desc)
+            )
             Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-            Text(text = "Log Out")
+            Text(text = stringResource(R.string.logout))
         }
     }
 }
@@ -147,7 +156,7 @@ fun ProfileContent(
 fun ProfileHeader(name: String, imageUrl: String?) {
     AsyncImage(
         model = imageUrl,
-        contentDescription = "Foto Profil",
+        contentDescription = stringResource(R.string.profile_photo_desc),
         placeholder = painterResource(id = R.drawable.ic_default_profile),
         error = painterResource(id = R.drawable.ic_default_profile),
         modifier = Modifier.size(120.dp).clip(CircleShape),
@@ -175,8 +184,16 @@ fun ProfileInfoRow(icon: ImageVector, label: String, value: String) {
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(text = value.ifEmpty { "-" }, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value.ifEmpty { "-" },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

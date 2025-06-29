@@ -1,41 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">PlayCUt</string>
-    <string name="book_with">Pesan dengan %1$s</string>
-    <string name="select_service">Pilih Layanan</string>
-    <string name="select_additional_service">Pilih Layanan Tambahan</string>
-    <string name="select_available_time">Pilih Waktu Tersedia</string>
-    <string name="confirm_booking">Konfirmasi Pemesanan</string>
-    <string name="please_select_all">Harap pilih layanan, layanan tambahan, dan waktu</string>
-    <string name="booking_confirmed">Pemesanan dikonfirmasi dengan %1$s pada %2$s</string>
-    <string name="service">Layanan</string>
-    <string name="services">Layanan</string>
-    <string name="barber_di_cabang_ini">Barber di Cabang Ini</string>
-    <string name="paket_harga">Paket / Harga</string>
-    <string name="reguler">REGULER</string>
-    <string name="other_service">Layanan Lain</string>
-    <string name="branch_image_desc">Gambar Cabang</string>
-    <string name="login_title">Masuk</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="login_button">Masuk</string>
-    <string name="no_account">Belum punya akun?</string>
-    <string name="register">Daftar</string>
-    <string name="profile_name">Raymond Hariyono</string>
-    <string name="profile_email">raymond@example.com</string>
-    <string name="settings">Pengaturan</string>
-    <string name="logout">Log Out</string>
-    <string name="register_button">Daftar</string>
-    <string name="have_account">Sudah punya akun?</string>
-    <string name="email_hint">Email</string>
-    <string name="name_hint">Nama</string>
-    <string name="username_hint">Username</string>
-    <string name="password_hint">Password</string>
-    <string name="search_branch">Cari Cabang</string>
-    <string name="branch_location">Lokasi Cabang</string>
-    <string name="book_now">Pesan Sekarang</string>
-    <string name="no_reservation">Belum ada reservasi</string>
-    <string name="barber_name">Nama Barber</string>
-    <string name="available_times">Waktu Tersedia</string>
+    <!-- Reservasi Page -->
+    <string name="your_reservation_title">Reservasi Anda</string>
+    <string name="no_reservations_title">Anda Belum Punya Reservasi</string>
+    <string name="no_reservations_message">Ayo cari cabang terdekat dan buat reservasi pertamamu!</string>
+    <string name="find_branch_now">Cari Cabang Sekarang</string>
 
+    <!-- Dialog Konfirmasi -->
+    <string name="cancel_confirmation_title">Konfirmasi Pembatalan</string>
+    <string name="cancel_confirmation_message">Apakah Anda yakin ingin membatalkan reservasi ini? Aksi ini tidak dapat dikembalikan.</string>
+    <string name="confirm_cancel">Ya, Batalkan</string>
+    <string name="dismiss_cancel">Tidak</string>
+
+    <!-- Icon Description -->
+    <string name="warning_icon_desc">Peringatan</string>
+
+    <!-- Profile Page -->
+    <string name="edit_profile">Edit Profil</string>
+    <string name="logout">Log Out</string>
+    <string name="logout_icon_desc">Icon Keluar</string>
+    <string name="profile_photo_desc">Foto Profil</string>
+    <string name="unknown_user">Pengguna</string>
+    <string name="contact_label">Kontak</string>
+    <string name="phone_label">No. HP</string>
+    <string name="role_label">Peran</string>
+    <string name="admin_role">Administrator</string>
+    <string name="unknown_profile_detail">Tidak dapat menampilkan detail profil.</string>
+    <string name="error_message">Error: %1$s</string>
+    <string name="edit_icon_desc">Edit</string>
+
+    <string name="inspiration_title">Inspirasi Gaya Rambut</string>
+    <string name="loading_error">Gagal memuat: %1$s</string>
+    <string name="photo_by">Foto oleh %1$s</string>
+
+    <!-- Home Page -->
+    <string name="main_card_title">Cari &amp; Pesan Sekarang</string>
+    <string name="main_card_subtitle">Temukan cabang terdekat dan barber favoritmu.</string>
+    <string name="quick_access_search">Cari Cabang</string>
+    <string name="quick_access_reservation">Reservasi</string>
+    <string name="quick_access_profile">Profil</string>
+    <string name="section_promo_title">Promo &amp; Penawaran Spesial</string>
 </resources>

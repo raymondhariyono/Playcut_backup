@@ -133,7 +133,7 @@ fun BranchBarberList(
                             contentColor = MaterialTheme.colorScheme.surface
                         )
                     ) {
-                        Text(stringResource(id = R.string.book_now))
+                        Text(stringResource(id = R.string.main_card_title))
                     }
                 }
             }

@@ -58,7 +58,9 @@ class ProfileViewModel @Inject constructor(
                         docPath = barberDoc.reference.path,
                         name = barberDoc.getString("name") ?: "",
                         contact = barberDoc.getString("contact") ?: "",
-                        imageRes = barberDoc.getString("imageRes") ?: ""
+                        imageRes = barberDoc.getString("imageRes") ?: "",
+                        authUid = uid,
+                        id = barberDoc.getLong("id")?.toInt() ?: 0
                     )
                     _uiState.update { it.copy(isLoading = false, userProfile = profile) }
                     return@launch
