@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
@@ -112,6 +113,19 @@ fun AdminDashboardPage(
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                     Text("Kelola Barber")
                 }
+
+            }
+            Button(onClick = {
+                val branchId = adminProfile?.branchId
+                if (branchId != null && branchId != -1) {
+                    navController.navigate("manageBarberAccounts/$branchId")
+                } else {
+                    scope.launch { snackbarHostState.showSnackbar("ID Cabang tidak ditemukan.") }
+                }
+            }) {
+                Icon(Icons.Outlined.AccountCircle, null, Modifier.size(ButtonDefaults.IconSize)) // Contoh ikon
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text("Kelola Akun")
             }
             Spacer(Modifier.height(24.dp))
             Text("Daftar Reservasi di Cabang Anda:", style = MaterialTheme.typography.titleMedium)

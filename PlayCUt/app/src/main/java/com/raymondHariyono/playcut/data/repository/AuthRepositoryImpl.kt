@@ -20,6 +20,8 @@ class AuthRepositoryImpl : AuthRepository {
     override suspend fun loginUser(credentials: LoginCredentials): Result<Unit> {
         return try {
             firebaseAuth.signInWithEmailAndPassword(credentials.email, credentials.pass).await()
+            val uid = firebaseAuth.currentUser?.uid
+            Log.d("LoginDebug", "Login berhasil. UID: $uid")
             Result.success(Unit)
         } catch (e: Exception) {
             val errorMessage = when (e) {
@@ -31,7 +33,6 @@ class AuthRepositoryImpl : AuthRepository {
         }
     }
 
-    // ... (kode lain di dalam AuthRepositoryImpl)
 
     override suspend fun registerUser(credentials: RegisterCredentials): Result<Unit> {
         return try {
@@ -79,14 +80,15 @@ class AuthRepositoryImpl : AuthRepository {
                 )
             }
 
-            // Prioritas 2: Cek Barber
             val barberDoc = firestore.collectionGroup("barbers").whereEqualTo("authUid", uid).limit(1).get().await().firstOrNull()
-            if (barberDoc != null) {    
+            if (barberDoc != null) {
                 return UserProfile.Barber(
                     docPath = barberDoc.reference.path,
                     name = barberDoc.getString("name") ?: "",
                     contact = barberDoc.getString("contact") ?: "",
-                    imageRes = barberDoc.getString("imageRes") ?: ""
+                    imageRes = barberDoc.getString("imageRes") ?: "",
+                    id = barberDoc.getLong("id")?.toInt() ?: 0,
+                    authUid = barberDoc.getString("authUid")
                 )
             }
 

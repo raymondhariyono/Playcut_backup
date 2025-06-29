@@ -13,7 +13,6 @@ interface BarbershopRepository {
     fun getServices(): Flow<List<Service>>
     fun getHomeServices(): Flow<List<HomeService>>
     fun getInspirations(): Flow<List<Inspiration>>
-    suspend fun addBarberToBranch(branchId: Int, barber: Barber): Result<Unit>
 
     // --- Data Lokal (Room) ---
     fun getReservations(): Flow<List<Reservation>>

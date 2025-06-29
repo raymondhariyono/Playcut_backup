@@ -7,10 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.addBarber.AddBarberPage
 import com.raymondHariyono.playcut.presentation.screens.admin.AdminDashboardPage
+import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.ManageBarberAccountsPage
+import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.addBarber.AddBarberPage
 import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.schedule.ManageBarbersPage
 import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginPage
+import com.raymondHariyono.playcut.presentation.screens.barber.dashboard.BarberDashboardPage
 import com.raymondHariyono.playcut.presentation.screens.booking.BookingPage
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.DetailBranchPage
 import com.raymondHariyono.playcut.presentation.screens.branch.search.SearchBranchPage
@@ -104,6 +106,17 @@ fun AppNavigator() {
 
         composable("inspiration") {
             InspirationPage()
+        }
+
+        composable(
+            "manageBarberAccounts/{branchId}",
+            arguments = listOf(navArgument("branchId") { type = NavType.IntType })
+        ) {
+            ManageBarberAccountsPage(navController = navController, viewModel = hiltViewModel())
+        }
+
+        composable("barberDashboard") {
+            BarberDashboardPage(navController = navController, viewModel = hiltViewModel())
         }
     }
 }

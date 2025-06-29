@@ -17,6 +17,8 @@ import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
 import com.raymondHariyono.playcut.domain.usecase.GetReservationByIdUseCase
 import com.raymondHariyono.playcut.domain.usecase.admin.AddBarberUseCase
 import com.raymondHariyono.playcut.domain.usecase.admin.GetReservationsByBranchUseCase
+import com.raymondHariyono.playcut.domain.usecase.admin.LinkBarberAccountUseCase
+import com.raymondHariyono.playcut.domain.usecase.admin.RegisterBarberAccountUseCase
 import com.raymondHariyono.playcut.domain.usecase.auth.GetUserProfileUseCase
 import com.raymondHariyono.playcut.domain.usecase.reservation.CreateBookingUseCase
 import com.raymondHariyono.playcut.domain.usecase.reservation.DeleteReservationUseCase
@@ -28,7 +30,7 @@ import com.raymondHariyono.playcut.domain.usecase.branch.GetBarberDetailsUseCase
 import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchDetailsUseCase
 import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchesUseCase
 import com.raymondHariyono.playcut.domain.usecase.home.GetHomePageDataUseCase
-import com.raymondHariyono.playcut.domain.usecase.inspiration.GetInspirationPhotosUseCase
+import com.raymondHariyono.playcut.domain.usecase.home.GetInspirationPhotosUseCase
 import com.raymondHariyono.playcut.domain.usecase.reservation.UpdateReservationUseCase
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.GetServicesUseCase
 import dagger.Module
@@ -89,8 +91,6 @@ object AppModule {
     @Singleton
     fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    // --- Use Case Providers (BAGIAN PALING PENTING) ---
-    // Hilt perlu tahu cara membuat SETIAP UseCase yang akan di-inject ke ViewModel.
 
     @Provides
     @Singleton
@@ -186,8 +186,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAddBarberUseCase(
-        auth: FirebaseAuth, db: FirebaseFirestore): AddBarberUseCase {
-        return AddBarberUseCase(auth, db)
+        db: FirebaseFirestore // Hanya perlu parameter FirebaseFirestore
+    ): AddBarberUseCase {
+        return AddBarberUseCase(db)
     }
 
     @Provides
@@ -207,7 +208,7 @@ object AppModule {
     fun provideLogoutUseCase(repo: AuthRepository): LogoutUseCase = LogoutUseCase(repo)
 
 
-    private const val UNSPLASH_BASE_URL = "https://unsplash.com/"
+    private const val UNSPLASH_BASE_URL = "https://api.unsplash.com/"
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
@@ -232,4 +233,18 @@ object AppModule {
     fun provideUnsplashApiService(retrofit: Retrofit): UnsplashApiService {
         return retrofit.create(UnsplashApiService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideRegisterBarberAccountUseCase(auth: FirebaseAuth): RegisterBarberAccountUseCase {
+        return RegisterBarberAccountUseCase(auth)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLinkBarberAccountUseCase(db: FirebaseFirestore): LinkBarberAccountUseCase {
+        return LinkBarberAccountUseCase(db)
+    }
+
+
 }

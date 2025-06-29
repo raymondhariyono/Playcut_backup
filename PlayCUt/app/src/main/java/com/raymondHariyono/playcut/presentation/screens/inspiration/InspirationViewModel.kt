@@ -2,7 +2,7 @@ package com.raymondHariyono.playcut.presentation.screens.inspiration
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.raymondHariyono.playcut.domain.usecase.inspiration.GetInspirationPhotosUseCase
+import com.raymondHariyono.playcut.domain.usecase.home.GetInspirationPhotosUseCase // Perhatikan package telah diubah dari 'inspiration' ke 'home'
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,18 +19,20 @@ class InspirationViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        fetchInspirationPhotos("men haircut style")
+        fetchInspirationPhotos() // Tidak perlu lagi parameter query karena use case tidak menggunakannya
     }
 
-    fun fetchInspirationPhotos(query: String) {
+    // Ubah parameter agar tidak ada 'query' karena use case tidak menerimanya lagi
+    fun fetchInspirationPhotos() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val result = getInspirationPhotosUseCase(query)
-
-            result.onSuccess { photos ->
+            try {
+                // Panggil metode execute() secara eksplisit
+                val photos = getInspirationPhotosUseCase.execute()
                 _uiState.update { it.copy(isLoading = false, photos = photos) }
-            }.onFailure { error ->
-                _uiState.update { it.copy(isLoading = false, error = error.message) }
+            } catch (e: Exception) {
+                // Tangani kesalahan di sini
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }

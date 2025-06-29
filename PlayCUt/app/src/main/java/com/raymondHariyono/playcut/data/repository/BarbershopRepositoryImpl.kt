@@ -28,12 +28,24 @@ class BarbershopRepositoryImpl(
 
     override fun getBranches(): Flow<List<Branch>> = flow {
         try {
-            val snapshot = firestore.collection("branches").get().await()
-            val branches = snapshot.toObjects(Branch::class.java)
-            emit(branches)
+            val branchesSnapshot = firestore.collection("branches").get().await()
+            val branchesWithBarbers = branchesSnapshot.documents.mapNotNull { branchDoc ->
+                val branch = branchDoc.toObject(Branch::class.java)
+                if (branch != null) {
+                    val barbersSnapshot = branchDoc.reference.collection("barbers").get().await()
+                    val barbersList = barbersSnapshot.toObjects(Barber::class.java)
+
+                    val filteredBarbers = barbersList.filter { it.status == "active" || it.authUid != null }
+
+                    branch.copy(barbers = filteredBarbers)
+                } else {
+                    null
+                }
+            }
+            emit(branchesWithBarbers)
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting branches", e)
-            emit(emptyList())
+            Log.e(TAG, "Error getting branches with barbers", e)
+            emit(emptyList()) // Emit daftar kosong jika terjadi kesalahan
         }
     }
 
@@ -49,20 +61,43 @@ class BarbershopRepositoryImpl(
     }
 
     override fun getBarberById(barberId: Int): Flow<BarberDetails?> {
-        return getBranches().map { allBranches ->
+        return flow {
             try {
-                for (branch in allBranches) {
-                    val foundBarber = branch.barbers.find { it.id == barberId }
-                    if (foundBarber != null) {
-                        Log.d(TAG, "Barber ditemukan di cabang: ${branch.name}")
-                        return@map BarberDetails(barber = foundBarber, branch = branch)
+                // Mengambil semua dokumen cabang
+                val branchesSnapshot = firestore.collection("branches").get().await()
+
+                var foundBarber: Barber? = null
+                var foundBranch: Branch? = null
+
+                // Iterasi melalui setiap dokumen cabang
+                for (branchDoc in branchesSnapshot.documents) {
+                    val branch = branchDoc.toObject(Branch::class.java)
+                    if (branch != null) {
+                        // Kueri sub-koleksi 'barbers' di cabang ini untuk mencari barber berdasarkan ID
+                        val barberQuerySnapshot = branchDoc.reference.collection("barbers")
+                            .whereEqualTo("id", barberId)
+                            .limit(1)
+                            .get()
+                            .await()
+
+                        val barberDoc = barberQuerySnapshot.documents.firstOrNull()
+                        if (barberDoc != null) {
+                            foundBarber = barberDoc.toObject(Barber::class.java)
+                            foundBranch = branch
+                            break
+                        }
                     }
                 }
-                Log.d(TAG, "Barber ID $barberId tidak ditemukan di cabang mana pun.")
-                null
+
+                if (foundBarber != null && foundBranch != null) {
+                    emit(BarberDetails(barber = foundBarber, branch = foundBranch))
+                } else {
+                    Log.d(TAG, "Barber ID $barberId tidak ditemukan di cabang mana pun.")
+                    emit(null)
+                }
             } catch (e: Exception) {
-                Log.e(TAG, "Gagal menemukan barber", e)
-                null
+                Log.e(TAG, "Gagal menemukan barber by ID", e)
+                emit(null)
             }
         }
     }
@@ -181,7 +216,6 @@ class BarbershopRepositoryImpl(
             }
 
             try {
-                // Query ke Firestore untuk mengambil semua reservasi di cabang tertentu
                 val snapshot = firestore.collection("reservations")
                     .whereEqualTo("branchName", branchName)
                     .orderBy("dateTime", Query.Direction.DESCENDING)
@@ -197,19 +231,6 @@ class BarbershopRepositoryImpl(
         }
     }
 
-
-    override suspend fun addBarberToBranch(branchId: Int, barber: Barber): Result<Unit> {
-        return try {
-            val documentId = "branch-$branchId"
-            val branchRef = firestore.collection("branches").document(documentId)
-
-            branchRef.update("barbers", FieldValue.arrayUnion(barber)).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error adding barber to branch $branchId", e)
-            Result.failure(e)
-        }
-    }
 }
 
 private fun ReservationEntity.toDomainModel(): Reservation {

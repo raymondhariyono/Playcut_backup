@@ -3,10 +3,12 @@ package com.raymondHariyono.playcut.domain.model
 sealed class UserProfile {
 
     data class Barber(
-        val docPath: String, // Path dokumen untuk update
+        val docPath: String,
         val name: String,
         val contact: String,
-        val imageRes: String
+        val imageRes: String,
+        val id: Int,
+        val authUid: String?
     ) : UserProfile()
 
     data class Customer(

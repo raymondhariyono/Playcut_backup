@@ -1,61 +1,75 @@
 package com.raymondHariyono.playcut.presentation.screens.barber.dashboard
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.raymondHariyono.playcut.domain.model.Barber
-import com.raymondHariyono.playcut.domain.model.Reservation
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+
 @HiltViewModel
-class BarberDashboardViewModel @Inject constructor() : ViewModel() {
-    private val db = Firebase.firestore
-    private val auth = Firebase.auth
+class BarberDashboardViewmodel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val firebaseAuth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(BarberDashboardUiState())
-    val uiState = _uiState.asStateFlow()
-
-    init {
-        loadInitialData()
-    }
-
-    private fun loadInitialData() {
+    private fun loadBarberProfileAndReservations() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val uid = auth.currentUser?.uid
-            if (uid == null) {
-                _uiState.update { it.copy(isLoading = false, error = "Sesi berakhir, silakan login kembali.") }
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            val currentAuthUser = firebaseAuth.currentUser
+
+            if (currentAuthUser == null) {
+                _uiState.update { it.copy(isLoading = false, error = "Pengguna tidak terautentikasi.") }
                 return@launch
             }
 
             try {
-                val barberDoc = db.collectionGroup("barbers").whereEqualTo("authUid", uid).limit(1).get().await().firstOrNull()
-                val barber = barberDoc?.toObject(Barber::class.java)
+                val profile = authRepository.getCurrentUserProfile()
 
-                _uiState.update { it.copy(barberProfile = barber) }
+                if (profile is UserProfile.Barber) {
+                    _uiState.update { it.copy(barberProfile = profile) }
+                    // Akses properti 'name' dan 'authUid' langsung dari objek 'profile'
+                    Log.d(TAG, "Profil Barber dimuat: ${profile.name}, AuthUID: ${profile.authUid}") // INI SEHARUSNYA TIDAK ERROR LAGI
 
-                if (barber != null) {
-                    val reservationsSnapshot = db.collection("reservations")
-                        .whereEqualTo("barberId", barber.id)
-                        .orderBy("dateTime", Query.Direction.DESCENDING) // Urutkan dari yang paling baru
-                        .get().await()
+                    // Akses properti 'id' dan 'authUid' langsung dari objek 'profile'
+                    profile.id.let { barberIdInteger -> // Menggunakan profile.id (integer)
+                        if (barberIdInteger != 0) {
+                            reservationsListener?.remove()
 
-                    val reservationList = reservationsSnapshot.toObjects(Reservation::class.java)
-                    _uiState.update { it.copy(isLoading = false, reservations = reservationList, error = null) }
+                            reservationsListener = firestore.collection("reservations")
+                                .whereEqualTo("barberId", barberIdInteger) // Menggunakan barberId (integer)
+                                .orderBy("bookingDate", Query.Direction.DESCENDING)
+                                .orderBy("bookingTime", Query.Direction.DESCENDING)
+                                .addSnapshotListener { snapshot, e ->
+                                    if (e != null) {
+                                        Log.e(TAG, "Error listening for reservations: ${e.message}", e)
+                                        _uiState.update { it.copy(isLoading = false, error = "Gagal memuat reservasi: ${e.localizedMessage}") }
+                                        return@addSnapshotListener
+                                    }
+
+                                    if (snapshot != null) {
+                                        val reservations = snapshot.toObjects(Reservation::class.java)
+                                        _uiState.update { it.copy(isLoading = false, reservations = reservations, error = null) }
+                                        Log.d(TAG, "Memuat ${reservations.size} reservasi untuk barber.")
+                                    } else {
+                                        _uiState.update { it.copy(isLoading = false, reservations = emptyList(), error = null) }
+                                        Log.d(TAG, "Snapshot reservasi kosong.")
+                                    }
+                                }
+                        } else {
+                            _uiState.update { it.copy(isLoading = false, error = "Profil barber tidak memiliki ID valid.") }
+                            Log.e(TAG, "Profil barber tidak memiliki ID valid: $barberIdInteger")
+                        }
+                    }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = "Profil barber tidak ditemukan atau belum tertaut.") }
+                    _uiState.update { it.copy(isLoading = false, error = "Profil pengguna bukan barber.") }
+                    Log.e(TAG, "Profil pengguna bukan barber. Tipe: ${profile?.javaClass?.simpleName ?: "null"}")
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "Gagal memuat data: ${e.message}") }
+                _uiState.update { it.copy(isLoading = false, error = "Gagal memuat data: ${e.localizedMessage}") }
+                Log.e(TAG, "Kesalahan umum saat memuat data barber: ${e.message}", e)
             }
         }
     }

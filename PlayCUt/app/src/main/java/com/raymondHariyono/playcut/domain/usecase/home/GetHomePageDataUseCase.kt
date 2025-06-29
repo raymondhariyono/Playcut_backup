@@ -1,3 +1,4 @@
+// File: PlayCUt/app/src/main/java/com/raymondHariyono/playcut/domain/usecase/home/GetHomePageDataUseCase.kt
 package com.raymondHariyono.playcut.domain.usecase.home
 
 import com.raymondHariyono.playcut.domain.model.Branch
@@ -5,7 +6,6 @@ import com.raymondHariyono.playcut.domain.model.UnsplashPhoto
 import com.raymondHariyono.playcut.domain.model.UserProfile
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
-import com.raymondHariyono.playcut.domain.usecase.inspiration.GetInspirationPhotosUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -24,7 +24,17 @@ class GetHomePageDataUseCase @Inject constructor(
 
     operator fun invoke(): Flow<HomePageData> = flow {
         val profile = authRepository.getCurrentUserProfile()
-        val inspirationResult = getInspirationPhotosUseCase("men's fade haircut")
+
+        // --- Perbaikan di sini ---
+        val photos: List<UnsplashPhoto> = try {
+            // Panggil metode execute() secara eksplisit
+            getInspirationPhotosUseCase.execute()
+        } catch (e: Exception) {
+            // Log error atau tangani sesuai kebutuhan
+            // Misalnya, emit daftar kosong jika terjadi kesalahan
+            emptyList()
+        }
+        // --- Akhir Perbaikan ---
 
         val userName = when (profile) {
             is UserProfile.Admin -> profile.name
@@ -32,8 +42,6 @@ class GetHomePageDataUseCase @Inject constructor(
             is UserProfile.Customer -> profile.name
             else -> "Pengguna"
         }
-
-        val photos = inspirationResult.getOrNull() ?: emptyList()
 
         val homeData = HomePageData(
             userName = userName,

@@ -25,23 +25,15 @@ fun AddBarberPage(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Efek untuk menampilkan pesan error dan meresetnya
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let {
-            scope.launch { snackbarHostState.showSnackbar(it) }
-            viewModel.consumeResult()
-        }
-    }
-
-    // Efek untuk navigasi kembali setelah sukses
-    LaunchedEffect(uiState.addSuccess) {
+    LaunchedEffect(uiState.addSuccess, uiState.errorMessage) {
         if (uiState.addSuccess) {
-            // Tampilkan pesan sukses sebentar sebelum kembali
-            scope.launch {
-                snackbarHostState.showSnackbar("Barber baru berhasil ditambahkan!")
-            }
+            scope.launch { snackbarHostState.showSnackbar("Barber baru berhasil ditambahkan!") }
             viewModel.consumeResult()
             navController.popBackStack()
+        }
+        uiState.errorMessage?.let {
+            scope.launch { snackbarHostState.showSnackbar("Gagal: $it") }
+            viewModel.consumeResult()
         }
     }
 
@@ -73,7 +65,8 @@ fun AddBarberPage(
                 onValueChange = viewModel::onNameChange,
                 label = { Text("Nama Lengkap Barber") },
                 modifier = Modifier.fillMaxWidth(),
-                isError = uiState.errorMessage != null
+                isError = uiState.errorMessage != null,
+                singleLine = true
             )
             OutlinedTextField(
                 value = uiState.contactInput,
@@ -81,21 +74,8 @@ fun AddBarberPage(
                 label = { Text("Nomor Kontak (cth: 0812...)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                isError = uiState.errorMessage != null
-            )
-
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            Text("Akun Login Barber", style = MaterialTheme.typography.titleLarge)
-            OutlinedTextField(
-                value = uiState.emailInput,
-                onValueChange = viewModel::onEmailChange,
-                label = { Text("Email untuk Login") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                supportingText = { Text("Password default akan dibuat: 'playcut123'") },
-                isError = uiState.errorMessage != null
+                isError = uiState.errorMessage != null,
+                singleLine = true
             )
 
             Spacer(Modifier.height(24.dp))

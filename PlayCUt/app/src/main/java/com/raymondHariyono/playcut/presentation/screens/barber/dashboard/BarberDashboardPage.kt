@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.google.firebase.Timestamp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.raymondHariyono.playcut.domain.model.Reservation
@@ -24,7 +23,7 @@ import java.util.*
 @Composable
 fun BarberDashboardPage(
     navController: NavController,
-    viewModel: BarberDashboardViewModel = hiltViewModel()
+    viewModel: BarberDashboardViewmodel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
