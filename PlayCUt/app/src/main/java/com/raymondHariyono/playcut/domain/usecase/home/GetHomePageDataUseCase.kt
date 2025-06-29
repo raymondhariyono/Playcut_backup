@@ -1,56 +1,46 @@
-// File: app/src/main/java/com/raymondHariyono/playcut/domain/usecase/GetHomePageDataUseCase.kt
 package com.raymondHariyono.playcut.domain.usecase.home
 
 import com.raymondHariyono.playcut.domain.model.Branch
-import com.raymondHariyono.playcut.domain.model.HomeService
-import com.raymondHariyono.playcut.domain.model.Inspiration
+import com.raymondHariyono.playcut.domain.model.UnsplashPhoto
 import com.raymondHariyono.playcut.domain.model.UserProfile
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
+import com.raymondHariyono.playcut.domain.usecase.inspiration.GetInspirationPhotosUseCase
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
 data class HomePageData(
     val userName: String,
     val promotions: List<Branch>,
-    val homeServices: List<HomeService>,
-    val inspirations: List<Inspiration>
+    val inspirations: List<UnsplashPhoto>
 )
-class GetHomePageDataUseCase(
-    private val barbershopRepository: BarbershopRepository,
-    private val authRepository: AuthRepository
-) {
-    /**
-     * Use case untuk mengambil semua data yang dibutuhkan oleh Halaman Utama (Home).
-     * Ini menggabungkan data profil pengguna dengan data barbershop.
-     */
-    operator fun invoke(): Flow<HomePageData> = flow {
-        // Langkah 1: Panggil suspend function untuk mendapatkan profil pengguna saat ini.
-        val userProfile = authRepository.getCurrentUserProfile()
 
-        val dynamicUserName = when (userProfile) {
-            is UserProfile.Admin -> userProfile.name
-            is UserProfile.Barber -> userProfile.name
-            is UserProfile.Customer -> userProfile.name
+class GetHomePageDataUseCase @Inject constructor(
+    private val barbershopRepository: BarbershopRepository,
+    private val authRepository: AuthRepository,
+    private val getInspirationPhotosUseCase: GetInspirationPhotosUseCase
+) {
+
+    operator fun invoke(): Flow<HomePageData> = flow {
+        val profile = authRepository.getCurrentUserProfile()
+        val inspirationResult = getInspirationPhotosUseCase("men's fade haircut")
+
+        val userName = when (profile) {
+            is UserProfile.Admin -> profile.name
+            is UserProfile.Barber -> profile.name
+            is UserProfile.Customer -> profile.name
             else -> "Pengguna"
         }
 
-        combine(
-            barbershopRepository.getBranches(),
-            barbershopRepository.getHomeServices(),
-            barbershopRepository.getInspirations()
-        ) { branches, services, inspirations ->
-            // Langkah 4: Buat objek HomePageData dengan semua data yang sudah terkumpul.
-            HomePageData(
-                userName = dynamicUserName,
-                promotions = branches.take(3), // Ambil 3 cabang teratas sebagai promosi
-                homeServices = services,
-                inspirations = inspirations
-            )
-        }.collect { combinedData ->
-            // Langkah 5: Pancarkan (emit) data yang sudah jadi sebagai hasil akhir dari Flow ini.
-            emit(combinedData)
-        }
+        val photos = inspirationResult.getOrNull() ?: emptyList()
+
+        val homeData = HomePageData(
+            userName = userName,
+            promotions = emptyList(),
+            inspirations = photos
+        )
+
+        emit(homeData)
     }
 }

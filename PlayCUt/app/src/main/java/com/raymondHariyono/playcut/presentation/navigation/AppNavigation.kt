@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.AddBarberPage
+import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.addBarber.AddBarberPage
 import com.raymondHariyono.playcut.presentation.screens.admin.AdminDashboardPage
 import com.raymondHariyono.playcut.presentation.screens.admin.barberManagement.schedule.ManageBarbersPage
 import com.raymondHariyono.playcut.presentation.screens.auth.login.LoginPage
@@ -15,9 +15,11 @@ import com.raymondHariyono.playcut.presentation.screens.booking.BookingPage
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.DetailBranchPage
 import com.raymondHariyono.playcut.presentation.screens.branch.search.SearchBranchPage
 import com.raymondHariyono.playcut.presentation.screens.home.HomePage
+import com.raymondHariyono.playcut.presentation.screens.inspiration.InspirationPage
 import com.raymondHariyono.playcut.presentation.screens.map.MapPage
 import com.raymondHariyono.playcut.presentation.screens.onboarding.OnBoardingPage
 import com.raymondHariyono.playcut.presentation.screens.profile.ProfilePage
+import com.raymondHariyono.playcut.presentation.screens.profile.editprofile.EditProfilePage
 import com.raymondHariyono.playcut.presentation.screens.reservation.YourReservationPage
 import com.raymondHariyono.playcut.presentation.screens.splash.SPLASH_ROUTE
 import com.raymondHariyono.playcut.presentation.screens.splash.SplashScreen
@@ -29,7 +31,7 @@ fun AppNavigator() {
 
     NavHost(
         navController = navController,
-        startDestination = SPLASH_ROUTE // Halaman pertama selalu splash
+        startDestination = SPLASH_ROUTE
     ) {
         composable(SPLASH_ROUTE) {
             SplashScreen(navController = navController)
@@ -94,6 +96,14 @@ fun AppNavigator() {
 
         composable("map") {
             MapPage(navController = navController)
+        }
+
+        composable("editProfile") {
+            EditProfilePage(navController = navController)
+        }
+
+        composable("inspiration") {
+            InspirationPage()
         }
     }
 }

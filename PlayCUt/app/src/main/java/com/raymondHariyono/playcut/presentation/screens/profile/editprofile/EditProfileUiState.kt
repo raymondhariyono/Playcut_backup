@@ -8,5 +8,5 @@ data class EditProfileUiState(
     val userProfile: UserProfile = UserProfile.Unknown,
     val successMessage: String? = null,
     val error: String? = null,
-    val navigateToLogin: Boolean = false // State untuk memicu navigasi logout
+    val navigateToLogin: Boolean = false
 )

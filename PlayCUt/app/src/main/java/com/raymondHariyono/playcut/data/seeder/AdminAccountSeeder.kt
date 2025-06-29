@@ -35,12 +35,14 @@ class AdminAccountSeeder(
 
         for (adminData in adminsToSeed) {
             try {
+                // Langkah 1: Buat pengguna di Firebase Authentication
                 val authResult = auth.createUserWithEmailAndPassword(adminData.email, adminData.pass).await()
                 val firebaseUser = authResult.user
 
                 if (firebaseUser != null) {
-                    Log.d(TAG, "Berhasil membuat akun Auth untuk: ${adminData.email}")
+                    Log.d(TAG, "Berhasil membuat akun Auth untuk: ${adminData.email} dengan UID: ${firebaseUser.uid}")
 
+                    // Langkah 2: Siapkan objek profil admin
                     val adminProfile = AdminProfile(
                         name = adminData.name,
                         email = adminData.email,
@@ -50,12 +52,12 @@ class AdminAccountSeeder(
 
                     db.collection("admins").document(firebaseUser.uid).set(adminProfile).await()
 
-                    Log.d(TAG, "Berhasil menyimpan profil Firestore untuk: ${adminData.name}")
+                    Log.d(TAG, "Berhasil menyimpan profil Firestore untuk: ${adminData.name} dengan Document ID: ${firebaseUser.uid}")
                     createdCount++
                 }
             } catch (e: FirebaseAuthUserCollisionException) {
-                Log.w(TAG, "Akun untuk ${adminData.email} sudah ada. Melewati.")
-                continue // Lanjut ke admin berikutnya
+                Log.w(TAG, "Akun Auth untuk ${adminData.email} sudah ada. Melewati.")
+                continue
             } catch (e: Exception) {
                 Log.e(TAG, "Gagal membuat admin ${adminData.email}", e)
             }

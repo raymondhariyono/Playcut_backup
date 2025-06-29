@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.raymondHariyono.playcut.data.local.ReservationDao
 import com.raymondHariyono.playcut.data.local.ReservationEntity
@@ -172,8 +173,27 @@ class BarbershopRepositoryImpl(
 
 
     override fun getReservationsByBranch(branchName: String): Flow<List<Reservation>> {
-        return reservationDao.getReservationsByBranch(branchName).map { entityList ->
-            entityList.map { it.toDomainModel() }
+        // Mengembalikan Flow yang langsung "mendengarkan" perubahan dari Firestore
+        return flow {
+            if (branchName.isBlank()) {
+                emit(emptyList()) // Jika nama cabang kosong, langsung kirim list kosong
+                return@flow
+            }
+
+            try {
+                // Query ke Firestore untuk mengambil semua reservasi di cabang tertentu
+                val snapshot = firestore.collection("reservations")
+                    .whereEqualTo("branchName", branchName)
+                    .orderBy("dateTime", Query.Direction.DESCENDING)
+                    .get()
+                    .await()
+
+                val reservations = snapshot.toObjects(Reservation::class.java)
+                emit(reservations) // Kirim hasilnya
+            } catch (e: Exception) {
+                Log.e(TAG, "Gagal mengambil reservasi untuk cabang $branchName", e)
+                throw e
+            }
         }
     }
 

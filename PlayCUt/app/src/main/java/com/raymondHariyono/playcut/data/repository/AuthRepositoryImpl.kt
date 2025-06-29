@@ -99,10 +99,6 @@ class AuthRepositoryImpl : AuthRepository {
                     phoneNumber = userDoc.getString("phoneNumber") ?: ""
                 )
             }
-
-            // --- PERBAIKAN UTAMA ---
-            // Jika setelah semua pengecekan tidak ada yang cocok, kembalikan null.
-            // Ini memberitahu ViewModel bahwa profilnya benar-benar tidak ada.
             Log.w("AuthRepository", "Pengguna dengan UID $uid berhasil diautentikasi, tetapi tidak memiliki dokumen profil di Firestore (admins, barbers, atau users).")
             null
 

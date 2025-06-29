@@ -18,54 +18,48 @@ class FirestoreSeeder(private val db: FirebaseFirestore) {
         Service("Braids", "Rp 80.000", "Gaya Rambut")
     )
 
+    // ... (di dalam kelas FirestoreSeeder)
+
     private val branchesToSeed = listOf(
-        // Cabang 1 (Lama)
         Branch(
-            id = 1, name = "Lambung Mangkurat", addressShort = "Jl. Lambung Mangkurat No. 12",
-            addressFull = "Jl. Lambung Mangkurat No. 12, Ruko Biru Sebelah Indomaret, Banjarmasin Tengah",
-            operationalHours = "09:00 - 21:00", imageRes = "placeholder_branch",
-            barbers = listOf(
-                Barber(1, "Budi", "081234567801", "placeholder_barber", listOf("09:00", "10:30")),
-                Barber(2, "Agus", "081234567802", "placeholder_barber", listOf("09:15", "10:45")),
-            )
+            id = 1,
+            name = "Playcuts Lambung Mangkurat",
+            addressFull = "Jl. Lambung Mangkurat No.22, Tlk. Dalam, Kec. Banjarmasin Tengah, Kota Banjarmasin",
+            imageRes = "https://lh5.googleusercontent.com/p/AF1QipMh-e-6_v9Lg5qYjX1n3g9R2bX8c9J6H4v-d_Xw=w408-h306-k-no",
+            latitude = -3.32849, // <-- DATA BARU
+            longitude = 114.59011  // <-- DATA BARU
         ),
-        // Cabang 2 (Lama)
         Branch(
-            id = 2, name = "A. Yani KM 5", addressShort = "Jl. A. Yani KM 5 No. 45",
-            addressFull = "Jl. A. Yani KM 5 No. 45, Ruko Merah Dekat McDonald's, Banjarmasin Timur",
-            operationalHours = "09:00 - 21:00", imageRes = "placeholder_branch",
-            barbers = listOf(
-                Barber(3, "Candra", "081234567806", "placeholder_barber", listOf("09:00", "10:00")),
-                Barber(4, "Dedi", "081234567807", "placeholder_barber", listOf("09:45", "11:15")),
-            )
+            id = 2,
+            name = "Playcuts A. Yani KM 5",
+            addressFull = "Jl. A. Yani No.5, Pemurus Dalam, Kec. Banjarmasin Sel., Kota Banjarmasin",
+            imageRes = "https://lh5.googleusercontent.com/p/AF1QipM2z-O9o-4G6_y-I6h7_X8a7tP6l5_kC-y8n-Zk=w408-h544-k-no",
+            latitude = -3.34320, // <-- DATA BARU
+            longitude = 114.62020  // <-- DATA BARU
         ),
-        // Cabang 3 (Baru)
         Branch(
-            id = 3, name = "Sultan Adam", addressShort = "Jl. Sultan Adam No. 33",
-            addressFull = "Jl. Sultan Adam No. 33, Komplek Mandiri, Banjarmasin Utara",
-            operationalHours = "10:00 - 22:00", imageRes = "placeholder_branch",
-            barbers = listOf(
-                Barber(5, "Eko", "081234567810", "placeholder_barber", listOf("10:00", "11:00")),
-            )
+            id = 3,
+            name = "Playcuts Sultan Adam",
+            addressFull = "Jl. Sultan Adam, Surgi Mufti, Kec. Banjarmasin Utara, Kota Banjarmasin",
+            imageRes = "https://lh5.googleusercontent.com/p/AF1QipP_rY2X-YJ5_g9K-Z0_wE9R-T8I_O6m4k-hN-fX=w408-h306-k-no",
+            latitude = -3.30836, // <-- DATA BARU
+            longitude = 114.59977  // <-- DATA BARU
         ),
-        // Cabang 4 (Baru)
         Branch(
-            id = 4, name = "Gatot Subroto", addressShort = "Jl. Gatot Subroto No. 101",
-            addressFull = "Jl. Gatot Subroto No. 101, Seberang Hotel Rattan Inn, Banjarmasin Timur",
-            operationalHours = "09:00 - 21:00", imageRes = "placeholder_branch",
-            barbers = listOf(
-                Barber(6, "Fajar", "081234567812", "placeholder_barber", listOf("09:30", "10:30")),
-                Barber(7, "Giri", "081234567813", "placeholder_barber", listOf("13:00", "14:00")),
-            )
+            id = 4,
+            name = "Playcuts Gatot Subroto",
+            addressFull = "Jl. Gatot Subroto No.7, Kuripan, Kec. Banjarmasin Tim., Kota Banjarmasin",
+            imageRes = "https://lh5.googleusercontent.com/p/AF1QipP_rY2X-YJ5_g9K-Z0_wE9R-T8I_O6m4k-hN-fX=w408-h306-k-no",
+            latitude = -3.32263,
+            longitude = 114.60531
         ),
-        // Cabang 5 (Baru)
         Branch(
-            id = 5, name = "Banjarbaru", addressShort = "Jl. Panglima Batur, Banjarbaru",
-            addressFull = "Jl. Panglima Batur, Ruko No. 5, Dekat Lapangan Murjani, Banjarbaru",
-            operationalHours = "10:00 - 22:00", imageRes = "placeholder_branch",
-            barbers = listOf(
-                Barber(8, "Hadi", "081234567815", "placeholder_barber", listOf("10:00", "11:00", "12:00")),
-            )
+            id = 5,
+            name = "Playcuts Banjarbaru",
+            addressFull = "Jl. Panglima Batur, Loktabat Utara, Kec. Banjarbaru Utara, Kota Banjarbaru",
+            imageRes = "https://lh5.googleusercontent.com/p/AF1QipP_rY2X-YJ5_g9K-Z0_wE9R-T8I_O6m4k-hN-fX=w408-h306-k-no",
+            latitude = -3.43300,
+            longitude = 114.81512
         )
     )
 

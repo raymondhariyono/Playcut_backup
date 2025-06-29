@@ -18,9 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.raymondHariyono.playcut.domain.model.Barber
 import com.raymondHariyono.playcut.domain.model.Reservation
-import com.raymondHariyono.playcut.domain.usecase.branch.BarberDetails
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -34,12 +32,13 @@ fun BookingPage(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val combinedResult = uiState.bookingResult ?: uiState.updateResult
 
-    LaunchedEffect(combinedResult) {
-        combinedResult?.let {
+    LaunchedEffect(uiState.bookingResult, uiState.updateResult) {
+        val result = uiState.bookingResult ?: uiState.updateResult
+
+        result?.let {
             val message = if (it.isSuccess) {
-                if (uiState.isEditMode) "Perubahan Disimpan!" else "Booking Berhasil!"
+                if (uiState.isEditMode) "Perubahan berhasil disimpan!" else "Booking Berhasil!"
             } else {
                 "Gagal: ${it.exceptionOrNull()?.message}"
             }
@@ -67,7 +66,7 @@ fun BookingPage(
             contentAlignment = Alignment.Center
         ) {
             when {
-                uiState.isLoading -> CircularProgressIndicator()
+                uiState.isLoading && uiState.barberDetails == null -> CircularProgressIndicator()
                 uiState.error != null -> Text(text = "Error: ${uiState.error}")
                 uiState.barberDetails != null -> {
                     BookingForm(
@@ -97,10 +96,14 @@ fun BookingForm(
 
     val isConfirmEnabled = uiState.customerName.isNotBlank() &&
             uiState.selectedTime.isNotBlank() &&
-            (uiState.selectedMainService.isNotBlank() || uiState.selectedOtherServices.isNotEmpty())
+            uiState.selectedMainService.isNotBlank() &&
+            !uiState.isLoading 
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(16.dp))
@@ -110,15 +113,27 @@ fun BookingForm(
         Spacer(Modifier.height(24.dp))
 
         SectionTitle("Nama Pelanggan")
-        OutlinedTextField(value = uiState.customerName, onValueChange = onCustomerNameChange, label = { Text("Masukkan nama lengkap Anda") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(
+            value = uiState.customerName,
+            onValueChange = onCustomerNameChange,
+            label = { Text("Masukkan nama lengkap Anda") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
         Spacer(Modifier.height(16.dp))
 
         SectionTitle("Pilih Layanan Utama")
-        ServicesSelectionDropDown(selectedService = uiState.selectedMainService, onServiceSelected = onMainServiceSelect)
+        ServicesSelectionDropDown(
+            selectedService = uiState.selectedMainService,
+            onServiceSelected = onMainServiceSelect
+        )
         Spacer(Modifier.height(16.dp))
 
         SectionTitle("Layanan Tambahan (Opsional)")
-        OtherServicesGrid(selectedServices = uiState.selectedOtherServices, onServiceSelected = onOtherServicesSelect)
+        OtherServicesGrid(
+            selectedServices = uiState.selectedOtherServices,
+            onServiceSelected = onOtherServicesSelect
+        )
         Spacer(Modifier.height(16.dp))
 
         SectionTitle("Pilih Waktu Tersedia")
@@ -137,7 +152,14 @@ fun BookingForm(
             enabled = isConfirmEnabled,
             modifier = Modifier.fillMaxWidth().height(56.dp)
         ) {
-            Text(if (uiState.isEditMode) "Simpan Perubahan" else "Konfirmasi Booking")
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(if (uiState.isEditMode) "Simpan Perubahan" else "Konfirmasi Booking")
+            }
         }
         Spacer(Modifier.height(32.dp))
     }
@@ -229,7 +251,7 @@ fun TimeSelectionGrid(
     onTimeSelected: (String) -> Unit,
     isEnabled: Boolean
 ) {
-    val today = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
+    val today = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID")).format(Date())
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 90.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -239,7 +261,6 @@ fun TimeSelectionGrid(
         items(availableTimes) { time ->
             val isTaken = reservations.any { it.barberName == barberName && it.bookingTime == time && it.bookingDate == today }
             val isSelected = selectedTime == time
-
             val finalIsEnabled = isEnabled && !isTaken
 
             val cardColors = when {

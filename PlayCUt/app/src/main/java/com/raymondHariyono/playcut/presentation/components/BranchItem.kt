@@ -13,6 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.raymondHariyono.playcut.R
 import com.raymondHariyono.playcut.domain.model.Branch
 
@@ -34,12 +35,8 @@ fun BranchItem(
         )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            val imagePainter = when (branch.imageRes) {
-                "placeholder_branch" -> painterResource(id = R.drawable.placeholder_branch)
-                else -> painterResource(id = R.drawable.placeholder_branch)
-            }
-            Image(
-                painter = imagePainter,
+            AsyncImage(
+                model = branch.imageRes,
                 contentDescription = branch.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

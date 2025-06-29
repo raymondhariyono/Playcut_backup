@@ -26,23 +26,13 @@ class MapViewModel @Inject constructor() : ViewModel() {
 
     private fun fetchAllBranches() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true) }
             try {
                 val snapshot = db.collection("branches").get().await()
                 val branches = snapshot.toObjects(Branch::class.java)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        branches = branches
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false, branches = branches) }
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.localizedMessage ?: "Gagal memuat cabang"
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

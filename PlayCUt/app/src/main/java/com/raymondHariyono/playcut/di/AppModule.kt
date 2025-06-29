@@ -4,11 +4,14 @@ import android.app.Application
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.raymondHariyono.playcut.data.local.AppDatabase
 import com.raymondHariyono.playcut.data.local.ReservationDao
+import com.raymondHariyono.playcut.data.remote.UnsplashApiService
 import com.raymondHariyono.playcut.data.repository.AuthRepositoryImpl
 import com.raymondHariyono.playcut.data.repository.BarbershopRepositoryImpl
 import com.raymondHariyono.playcut.data.seeder.AdminAccountSeeder
+import com.raymondHariyono.playcut.data.seeder.FirestoreSeeder
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
 import com.raymondHariyono.playcut.domain.usecase.GetReservationByIdUseCase
@@ -25,12 +28,18 @@ import com.raymondHariyono.playcut.domain.usecase.branch.GetBarberDetailsUseCase
 import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchDetailsUseCase
 import com.raymondHariyono.playcut.domain.usecase.branch.GetBranchesUseCase
 import com.raymondHariyono.playcut.domain.usecase.home.GetHomePageDataUseCase
+import com.raymondHariyono.playcut.domain.usecase.inspiration.GetInspirationPhotosUseCase
 import com.raymondHariyono.playcut.domain.usecase.reservation.UpdateReservationUseCase
 import com.raymondHariyono.playcut.presentation.screens.branch.detail.GetServicesUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
 import javax.inject.Singleton
 
 @Module
@@ -99,9 +108,10 @@ object AppModule {
     @Singleton
     fun provideGetHomePageDataUseCase(
         barbershopRepo: BarbershopRepository,
-        authRepo: AuthRepository
+        authRepo: AuthRepository,
+        inspirationUseCase: GetInspirationPhotosUseCase
     ): GetHomePageDataUseCase {
-        return GetHomePageDataUseCase(barbershopRepo, authRepo)
+        return GetHomePageDataUseCase(barbershopRepo, authRepo, inspirationUseCase)
     }
 
     @Provides
@@ -124,8 +134,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCreateBookingUseCase(repo: BarbershopRepository): CreateBookingUseCase {
-        return CreateBookingUseCase(repo)
+    fun provideCreateBookingUseCase(
+        db: FirebaseFirestore, auth: FirebaseAuth
+    ): CreateBookingUseCase {
+        return CreateBookingUseCase(db, auth)
     }
 
     @Provides
@@ -164,12 +176,6 @@ object AppModule {
         return GetUserProfileUseCase(repo)
     }
 
-    @Provides
-    @Singleton
-    fun provideLogoutUseCase(repo: AuthRepository): LogoutUseCase {
-        return LogoutUseCase(repo)
-    }
-
 
     @Provides
     @Singleton
@@ -179,13 +185,51 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAddBarberUseCase(repo: BarbershopRepository): AddBarberUseCase {
-        return AddBarberUseCase(repo)
+    fun provideAddBarberUseCase(
+        auth: FirebaseAuth, db: FirebaseFirestore): AddBarberUseCase {
+        return AddBarberUseCase(auth, db)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirestoreSeeder(db: FirebaseFirestore): FirestoreSeeder {
+        return FirestoreSeeder(db)
     }
 
     @Provides
     @Singleton
     fun provideAdminAccountSeeder(auth: FirebaseAuth, db: FirebaseFirestore): AdminAccountSeeder {
         return AdminAccountSeeder(auth, db)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLogoutUseCase(repo: AuthRepository): LogoutUseCase = LogoutUseCase(repo)
+
+
+    private const val UNSPLASH_BASE_URL = "https://unsplash.com/"
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        val json = Json { ignoreUnknownKeys = true }
+        return Retrofit.Builder()
+            .baseUrl(UNSPLASH_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnsplashApiService(retrofit: Retrofit): UnsplashApiService {
+        return retrofit.create(UnsplashApiService::class.java)
     }
 }

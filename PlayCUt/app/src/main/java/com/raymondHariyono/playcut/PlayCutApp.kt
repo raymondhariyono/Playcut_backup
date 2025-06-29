@@ -2,6 +2,7 @@ package com.raymondHariyono.playcut
 
 import android.app.Application
 import com.raymondHariyono.playcut.data.seeder.AdminAccountSeeder
+import com.raymondHariyono.playcut.data.seeder.FirestoreSeeder
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,14 +11,17 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class PlayCutApp : Application() {
-    @Inject // Hilt akan menyuntikkan seeder yang sudah kita sediakan di AppModule
+    @Inject
     lateinit var adminSeeder: AdminAccountSeeder
+
+    @Inject
+    lateinit var dataSeeder: FirestoreSeeder
 
     override fun onCreate() {
         super.onCreate()
 
-        // Menjalankan seeder di background thread agar tidak memblokir UI
         CoroutineScope(Dispatchers.IO).launch {
+            dataSeeder.seedDataIfNeeded()
             adminSeeder.seedAdminAccounts()
         }
     }
