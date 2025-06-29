@@ -113,11 +113,10 @@ fun ConfirmationDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Outlined.Warning, contentDescription = stringResource(R.string.warning_icon_desc)) },
 
-        // Judul dan isi dialog konfirmasi
         title = { Text(text = stringResource(R.string.cancel_confirmation_title)) },
         text = { Text(stringResource(R.string.cancel_confirmation_message)) },
 
-        // Tombol konfirmasi
+
         confirmButton = {
             Button(
                 onClick = onConfirm,

@@ -13,6 +13,7 @@ class CreateBookingUseCase(
     private val auth: FirebaseAuth
 ) {
     suspend operator fun invoke(
+        customerName: String,
         barberId: Int,
         barberName: String,
         branchName: String,
@@ -21,7 +22,6 @@ class CreateBookingUseCase(
     ): Result<Unit> {
         val currentUser = auth.currentUser
         val userId = currentUser?.uid
-        val customerName = currentUser?.displayName ?: "Pengguna Tamu"
 
         if (userId == null) {
             return Result.failure(Exception("Anda harus login untuk membuat reservasi."))

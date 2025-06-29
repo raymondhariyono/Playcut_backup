@@ -71,14 +71,6 @@ fun HomePage(
                     // 2. AKSES CEPAT
                     QuickAccessGrid(navController = navController)
 
-                    // 3. PROMO CAROUSEL
-                    SectionTitle(title = stringResource(R.string.section_promo_title))
-                    CarouselImage(
-                        navController = navController,
-                        imageList = uiState.promotions.map { it.imageRes }
-                    )
-
-                    // 4. INSPIRASI
                     InspirationSection(
                         photos = uiState.inspirations,
                         onViewMoreClick = { navController.navigate("inspiration") }
@@ -160,7 +152,7 @@ fun QuickAccessGrid(navController: NavController) {
             QuickAccessItem(
                 title = stringResource(R.string.quick_access_profile),
                 icon = Icons.Outlined.Person,
-                onClick = { /* TODO: Navigasi ke halaman profil */ }
+                onClick = { navController.navigate("editProfile")}
             )
         }
     }

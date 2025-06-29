@@ -37,7 +37,6 @@ class YourReservationViewModel @Inject constructor(
             // Panggil instance 'deleteReservationUseCase' yang sudah di-inject
             deleteReservationUseCase(reservationId)
                 .onSuccess {
-                    // Logika jika berhasil (tidak perlu melakukan apa-apa karena Flow akan otomatis update)
                     Log.d("ReservationVM", "Reservasi ID $reservationId berhasil dihapus.")
                 }
                 .onFailure { error ->

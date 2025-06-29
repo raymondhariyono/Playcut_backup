@@ -14,7 +14,7 @@ import com.raymondHariyono.playcut.data.seeder.AdminAccountSeeder
 import com.raymondHariyono.playcut.data.seeder.FirestoreSeeder
 import com.raymondHariyono.playcut.domain.repository.AuthRepository
 import com.raymondHariyono.playcut.domain.repository.BarbershopRepository
-import com.raymondHariyono.playcut.domain.usecase.GetReservationByIdUseCase
+import com.raymondHariyono.playcut.domain.usecase.reservation.GetReservationByIdUseCase
 import com.raymondHariyono.playcut.domain.usecase.admin.AddBarberUseCase
 import com.raymondHariyono.playcut.domain.usecase.admin.GetReservationsByBranchUseCase
 import com.raymondHariyono.playcut.domain.usecase.admin.LinkBarberAccountUseCase

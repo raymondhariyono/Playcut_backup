@@ -159,23 +159,26 @@ class BarbershopRepositoryImpl(
 
     override fun getReservations(): Flow<List<Reservation>> {
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-
         if (currentUserId == null) {
             return flowOf(emptyList())
         }
-
         return callbackFlow {
             val listenerRegistration = firestore.collection("reservations")
                 .whereEqualTo("userId", currentUserId)
                 .orderBy("dateTime", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, error ->
-
                     if (error != null) {
                         close(error)
                         return@addSnapshotListener
                     }
                     if (snapshot != null) {
-                        val reservations = snapshot.toObjects(Reservation::class.java)
+                        // --- AWAL PERUBAHAN ---
+                        val reservations = snapshot.documents.mapNotNull { document ->
+                            val reservation = document.toObject(Reservation::class.java)
+                            // Secara manual, salin objek dan isi properti 'id' dengan ID dokumen
+                            reservation?.copy(id = document.id)
+                        }
+                        // --- AKHIR PERUBAHAN ---
                         trySend(reservations).isSuccess
                     }
                 }
@@ -186,8 +189,24 @@ class BarbershopRepositoryImpl(
 
 
     override fun getReservationById(reservationId: String): Flow<Reservation?> {
-        return reservationDao.getReservationById(reservationId).map { entity ->
-            entity?.toDomainModel()
+        // Langsung mengambil data dari Firestore untuk konsistensi
+        return callbackFlow {
+            val docRef = firestore.collection("reservations").document(reservationId)
+
+            val listenerRegistration = docRef.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null && snapshot.exists()) {
+                    val reservation = snapshot.toObject(Reservation::class.java)
+                    trySend(reservation).isSuccess
+                } else {
+                    trySend(null).isSuccess // Kirim null jika tidak ditemukan
+                }
+            }
+
+            awaitClose { listenerRegistration.remove() }
         }
     }
 
@@ -206,7 +225,6 @@ class BarbershopRepositoryImpl(
             throw e
         }
     }
-
 
     override suspend fun updateReservation(reservation: Reservation) {
         try {

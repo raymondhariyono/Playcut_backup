@@ -76,8 +76,7 @@ fun AdminDashboardPage(
                 onClick = {
                     val branchId = adminProfile?.branchId
                     if (branchId != null && branchId != -1) {
-                        // Arahkan ke halaman tambah reservasi walk-in
-                        navController.navigate("add_reservation?branchId=$branchId")
+                        navController.navigate("branch")
                     } else {
                         scope.launch { snackbarHostState.showSnackbar("Profil admin tidak valid.") }
                     }
@@ -143,7 +142,6 @@ fun AdminDashboardPage(
         }
     }
 
-    // Dialog konfirmasi penghapusan
     if (reservationToDeleteId != null) {
         AlertDialog(
             onDismissRequest = viewModel::dismissDeleteConfirmation,

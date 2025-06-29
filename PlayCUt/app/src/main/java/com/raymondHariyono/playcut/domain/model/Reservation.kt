@@ -3,6 +3,7 @@ package com.raymondHariyono.playcut.domain.model
 import com.google.firebase.Timestamp
 
 data class Reservation(
+
     val id: String = "",
     val barberId: Int = 0,
     val bookingDate: String = "",
